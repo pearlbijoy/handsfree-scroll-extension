@@ -3,6 +3,7 @@
   "name": "Hands-Free Scroll",
   "version": "1.0",
   "description": "Webcam-based hand gesture extension for hands-free scrolling.",
+  "permissions":["offscreen","storage"],
   "action": {
     "default_popup": "popup.html"
   }
