@@ -18,10 +18,28 @@ async function createOffscreen(){
 async function checkPermission(){
     const result=await chrome.storage.local.get("cameraPermission");
     if(result.cameraPermission=="received"){
-        createOffscreen();
+        await createOffscreen();
     }
     else{
         chrome.tabs.create({url:"permission.html"});
     }
 }
-checkPermission(); 
+
+async function updateButtonText(){
+    const offscreendocumentexists=await chrome.offscreen.hasDocument();
+    document.querySelector("#togglecamera").textContent=offscreendocumentexists?"Stop Camera":"Enable Camera";
+}
+
+async function toggleCamera(){
+    const state=await chrome.offscreen.hasDocument();
+    if(state){
+        await chrome.offscreen.closeDocument();
+    }
+    else{
+        await checkPermission(); 
+    }
+    updateButtonText();
+}
+
+document.querySelector("#togglecamera").addEventListener("click",toggleCamera);
+updateButtonText();
