@@ -1,0 +1,15 @@
+{
+  "name": "handsfree-scroll-extension",
+  "version": "1.0.0",
+  "description": "Webcam based Chrome extension for hands-free scrolling using MediaPipe.",
+  "main": "offscreen.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.35"
+  }
+}
