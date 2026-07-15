@@ -1,21 +1,35 @@
 import { HandLandmarker, FilesetResolver } from "./vision_bundle.mjs";
+let videoElement;
+let handLandmarker;
 async function getCamera(){
     console.log("Asking for camera..");
     const videoFeed= await navigator.mediaDevices.getUserMedia({video:true});
-    const videoElement=document.querySelector("#livecam");
+    videoElement=document.querySelector("#livecam");
     videoElement.srcObject=videoFeed;
     console.log("Camera Active");
 }
-getCamera()
 
 async function loadHandLandmarker(){
     const vision= await FilesetResolver.forVisionTasks("./wasm");
-    const handLandmarker = await HandLandmarker.createFromOptions(
+    handLandmarker = await HandLandmarker.createFromOptions(
     vision,
     {baseOptions: {modelAssetPath: "./hand_landmarker.task"},runningMode: "VIDEO",numHands: 2}
     );
     if(handLandmarker){
         console.log("Landmarker object was created successfully.");
     }
+    const handLandmarkerReady=true;
 }
-loadHandLandmarker()
+
+function detectHands(){
+    const timestamp= handLandmarker.detectForVideo(videoElement, performance.now());
+    console.log(timestamp);
+    requestAnimationFrame(detectHands);
+}
+
+async function main(){
+    await getCamera();
+    await loadHandLandmarker();
+    detectHands();
+}
+main();
