@@ -21,10 +21,19 @@ async function loadHandLandmarker(){
     const handLandmarkerReady=true;
 }
 
+function isFingerExtended(landmarks,tipIndex,jointIndex){
+    return landmarks[tipIndex].y<landmarks[jointIndex].y;
+}
+
 function detectHands(){
-    const timestamp= handLandmarker.detectForVideo(videoElement, performance.now());
-    console.log(timestamp);
+    const result= handLandmarker.detectForVideo(videoElement, performance.now());
+    console.log(result);
     console.log(videoElement.videoWidth, videoElement.videoHeight);
+    if (result.landmarks.length > 0) {
+            const indexfinger = isFingerExtended(result.landmarks[0], 8, 6);
+            const middlefinger = isFingerExtended(result.landmarks[0], 12, 10);
+            console.log(`index extended ${indexfinger}; middle extended ${middlefinger}`);
+        }
     setTimeout(detectHands, 100);
 }
 
