@@ -24,7 +24,8 @@ async function loadHandLandmarker(){
 function detectHands(){
     const timestamp= handLandmarker.detectForVideo(videoElement, performance.now());
     console.log(timestamp);
-    requestAnimationFrame(detectHands);
+    console.log(videoElement.videoWidth, videoElement.videoHeight);
+    setTimeout(detectHands, 100);
 }
 
 async function main(){
