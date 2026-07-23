@@ -27,12 +27,12 @@ const THUMBS_UP_HOLD_FRAMES = 5;
 
 //to pause/play yt video
 let pauseHoldCount = 0;
-const PAUSE_HOLD_FRAMES = 55; // ~1.5s
+const PAUSE_HOLD_FRAMES = 5; // ~1.5s
 let pauseToggleFired = false;
 
 // two (screenshot) tracking
 let screenShotHoldCount = 0;
-const SCREENSHOT_HOLD_FRAMES = 55;
+const SCREENSHOT_HOLD_FRAMES = 5;
 let screenShotToggleFired = false;
 
 
@@ -53,7 +53,7 @@ async function loadHandLandmarker(){
     const vision= await FilesetResolver.forVisionTasks("./wasm");
     handLandmarker = await HandLandmarker.createFromOptions(
     vision,
-    {baseOptions: {modelAssetPath: "./hand_landmarker.task"},runningMode: "VIDEO",numHands: 2}
+    {baseOptions: {modelAssetPath: "./hand_landmarker.task"},runningMode: "VIDEO",numHands: 1}
     );
     if(handLandmarker){
         console.log("Landmarker object was created successfully.");
