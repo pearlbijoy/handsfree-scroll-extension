@@ -34,11 +34,22 @@ async function toggleCamera(){
     const state=await chrome.offscreen.hasDocument();
     if(state){
         await chrome.offscreen.closeDocument();
+        await chrome.storage.local.set({cameraActive: false});
     }
     else{
         await checkPermission(); 
+        await chrome.storage.local.set({cameraActive: true});
     }
     updateButtonText();
+    broadcastToAllTabs({action: state ? "cameraStopped" : "cameraStarted"});
+}
+
+function broadcastToAllTabs(message) {
+    chrome.tabs.query({}, (tabs) => {
+        tabs.forEach(tab => {
+            chrome.tabs.sendMessage(tab.id, message).catch(() => {});
+        });
+    });
 }
 
 document.querySelector("#togglecamera").addEventListener("click",toggleCamera);
