@@ -1,0 +1,92 @@
+<div id="gesture-panel" class="gesture-panel">
+  <div class="panel-header">
+    <div class="drag-handle">⠿</div>
+    <button id="collapse-btn" class="icon-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19V5"/><path d="m13 6-6 6 6 6"/><path d="M7 12h14"/></svg>
+    </button>
+  </div>
+
+  <div class="status-row">
+    <div class="status-item">
+      <span class="status-dot" id="dot-scroll"></span>
+      <div>
+        <div class="status-title">Scroll Active</div>
+        <div class="status-sub" id="scroll-sub">Ready to scroll</div>
+      </div>
+    </div>
+    <div class="status-item">
+      <span class="status-dot" id="dot-detection"></span>
+      <div>
+        <div class="status-title">Detection Active</div>
+        <div class="status-sub" id="detection-sub">Camera detecting</div>
+      </div>
+    </div>
+    <div class="status-item">
+      <span class="status-dot" id="dot-hand"></span>
+      <div>
+        <div class="status-title">Hand Detected</div>
+        <div class="status-sub" id="hand-sub">On track</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mode-box">
+    <div class="icon-chip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.146 15.854a1.207 1.207 0 0 1 1.708 0l1.56 1.56A2 2 0 0 1 15 18.828V21a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-2.172a2 2 0 0 1 .586-1.414z"/><path d="M18.828 15a2 2 0 0 1-1.414-.586l-1.56-1.56a1.207 1.207 0 0 1 0-1.708l1.56-1.56A2 2 0 0 1 18.828 9H21a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1z"/><path d="M6.586 14.414A2 2 0 0 1 5.172 15H3a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h2.172a2 2 0 0 1 1.414.586l1.56 1.56a1.207 1.207 0 0 1 0 1.708z"/><path d="M9 3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2.172a2 2 0 0 1-.586 1.414l-1.56 1.56a1.207 1.207 0 0 1-1.708 0l-1.56-1.56A2 2 0 0 1 9 5.172z"/></svg>
+    </div>
+    <div>
+      <div class="mode-label" id="mode-label">Current Mode</div>
+      <div class="mode-value" id="mode-value">Scroll Mode</div>
+    </div>
+  </div>
+
+  <div class="info-row">
+    <div class="icon-chip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+    </div>
+    <div>
+      <div class="info-title">Last Gesture</div>
+      <div class="info-value" id="last-gesture">Scrolled Down</div>
+      <div class="info-time" id="last-gesture-time">
+        <svg class="tiny-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        2s ago
+      </div>
+    </div>
+  </div>
+
+  <div class="info-row">
+    <div class="icon-chip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
+    </div>
+    <div>
+      <div class="info-title">Detection Rate</div>
+      <div class="info-value" id="detection-rate">~300 ms / frame</div>
+    </div>
+  </div>
+
+  <div class="slider-row">
+    <div class="slider-label"><span>Scroll Sensitivity</span><span id="sensitivity-val">60</span></div>
+    <input type="range" id="sensitivity-slider" min="0" max="100" value="60">
+    <div class="slider-range"><span>Low</span><span>High</span></div>
+  </div>
+
+  <div class="slider-row">
+    <div class="slider-label"><span>Hold Duration</span><span id="hold-val">20</span></div>
+    <input type="range" id="hold-slider" min="0" max="100" value="20">
+    <div class="slider-range"><span>Shorter</span><span>Longer</span></div>
+  </div>
+
+  <div class="button-row">
+    <button id="pause-btn" class="panel-btn">Pause</button>
+    <button id="guide-btn" class="panel-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v16"/><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/></svg>
+      Guide
+    </button>
+    <button id="settings-btn" class="panel-btn" disabled>Settings</button>
+  </div>
+</div>
+
+<div id="gesture-collapsed" class="gesture-collapsed" style="display:none;">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+  <span class="status-dot-mini" id="dot-collapsed"></span>
+</div>

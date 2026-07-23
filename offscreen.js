@@ -158,7 +158,7 @@ function detectHands(){
         }
 
         if (!isScrollPaused) {
-            // ---- SCROLL MODE ----
+            //  SCROLL MODE
             const currentIndexOnly = isIndexOnlyPose(fingers);
             const currentIndexMiddle = isIndexMiddlePose(fingers);
 
