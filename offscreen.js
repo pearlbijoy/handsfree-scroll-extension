@@ -20,7 +20,6 @@ let wasIndexMiddleLastFrame = false;
 const FLICK_SCROLL_AMOUNT = 300; 
 
 //to pause everything
-// let wasThumbsUpLastFrame=false;
 let thumbsUpHoldCount = 0;
 let thumbsUpToggleFired = false;
 const THUMBS_UP_HOLD_FRAMES = 5;
@@ -107,6 +106,15 @@ function isIndexMiddlePose(fingers) {
     return fingers.index && fingers.middle && !fingers.ring && !fingers.pinky;
 }
 
+function sendStatusUpdate(handDetected, lastGestureText) {
+    chrome.runtime.sendMessage({
+        type: "statusUpdate",
+        handDetected: handDetected,
+        isPaused: isPaused,
+        isScrollPaused: isScrollPaused,
+        lastGesture: lastGestureText
+    });
+}
 
 function detectHands(){
     const result= handLandmarker.detectForVideo(videoElement, performance.now());
@@ -118,6 +126,7 @@ function detectHands(){
         pauseHoldCount = 0;
         screenShotHoldCount = 0;
         thumbsUpHoldCount = 0
+        sendStatusUpdate(false, null);
         setTimeout(detectHands, 100);
         return;
     }
@@ -164,9 +173,11 @@ function detectHands(){
 
             if (currentIndexOnly && !wasIndexOnlyLastFrame) {
                 chrome.runtime.sendMessage({scrollAmount: FLICK_SCROLL_AMOUNT}); // scroll down
+                sendStatusUpdate(true, "Scrolled Down");
             }
             if (!currentIndexMiddle && wasIndexMiddleLastFrame) {
                 chrome.runtime.sendMessage({scrollAmount: -FLICK_SCROLL_AMOUNT}); // scroll up
+                sendStatusUpdate(true, "Scrolled Up");
             }
             wasIndexOnlyLastFrame = currentIndexOnly;
             wasIndexMiddleLastFrame = currentIndexMiddle;
@@ -177,6 +188,7 @@ function detectHands(){
                 pauseHoldCount++; //recording how many frames the pose was held for
                 if (pauseHoldCount >= PAUSE_HOLD_FRAMES && !pauseToggleFired) {
                     chrome.runtime.sendMessage({action: "toggleVideo"});
+                    sendStatusUpdate(true, "Toggled Video");
                     pauseToggleFired = true;
                     console.log("Video toggled");
                 }
@@ -191,6 +203,7 @@ function detectHands(){
                 screenShotHoldCount++;
                 if (screenShotHoldCount >= SCREENSHOT_HOLD_FRAMES && !screenShotToggleFired) {
                     chrome.runtime.sendMessage({action: "takeScreenshot"});
+                    sendStatusUpdate(true, "ScreenShot Taken");
                     screenShotToggleFired = true;
                     console.log("Screenshot taken");
                 }
@@ -202,7 +215,7 @@ function detectHands(){
         }
            
     }
-        
+    sendStatusUpdate(true, null);    
     setTimeout(detectHands, 100);
 }
 

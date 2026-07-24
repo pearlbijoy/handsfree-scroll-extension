@@ -151,3 +151,5 @@
   background: #22c55e;
   border: 2px solid rgba(30,34,42,1);
 }
+.status-dot-mini.orange { background: #f97316; }
+.status-dot-mini.red { background: #ef4444; }
