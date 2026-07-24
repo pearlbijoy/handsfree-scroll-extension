@@ -1,12 +1,21 @@
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log("Background received:", message);
     if (message.action === "takeScreenshot") {
-        chrome.tabs.captureVisibleTab(null, {format: "png"}, (dataUrl) => {
-            chrome.downloads.download({
-                url: dataUrl,
-                filename: "gesture-screenshot.png"
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (!tabs[0]) return;
+            const tabId = tabs[0].id;
+
+            chrome.tabs.sendMessage(tabId, {action: "hidePanelForCapture"}, () => {
+                chrome.tabs.captureVisibleTab(null, {format: "png"}, (dataUrl) => {
+                    chrome.downloads.download({
+                        url: dataUrl,
+                        filename: "gesture-screenshot.png"
+                    });
+                    chrome.tabs.sendMessage(tabId, {action: "showPanelAfterCapture"});
+                });
             });
         });
+        return;
     }
     if (message.action === "requestStopCamera") {
         chrome.offscreen.closeDocument();
@@ -21,6 +30,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 chrome.tabs.sendMessage(tab.id, message).catch(() => {});
             });
         });
+        return;
+    }
+
+    const offscreenOnlyActions = ["togglePauseFromPanel", "setSensitivity", "setHoldFrames","setMode"];
+    if (offscreenOnlyActions.includes(message.action)) {
+        chrome.runtime.sendMessage(message); 
         return;
     }
 

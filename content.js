@@ -57,7 +57,7 @@ function updatePanelStatus(message) {
 
     const dotScroll = document.getElementById("dot-scroll");
     const scrollSub = document.getElementById("scroll-sub");
-    dotScroll.className = "status-dot" + (message.isScrollPaused ? " " : "");
+    dotScroll.className = "status-dot" + (message.isScrollPaused ? "" : "orange");
     scrollSub.textContent = message.isScrollPaused ? "Scroll gestures disabled" : "Ready to scroll";
 
     if (message.lastGesture) {
@@ -86,6 +86,37 @@ function initPanel() {
         collapsed.style.display = "none";
         panel.style.display = "block";
     });
+
+    //sending message back to offscreen.js
+    document.getElementById("pause-btn").addEventListener("click", () => {
+        chrome.runtime.sendMessage({action: "togglePauseFromPanel"});
+    });
+
+    document.getElementById("end-btn").addEventListener("click", () => {
+        chrome.runtime.sendMessage({action: "requestStopCamera"});
+    });
+
+    document.getElementById("sensitivity-slider").addEventListener("input", (e) => {
+        const val = Number(e.target.value);
+        document.getElementById("sensitivity-val").textContent = val;
+        chrome.runtime.sendMessage({action: "setSensitivity", value: val});
+    });
+
+    document.getElementById("hold-slider").addEventListener("input", (e) => {
+        const val = Number(e.target.value);
+        document.getElementById("hold-val").textContent = val;
+        chrome.runtime.sendMessage({action: "setHoldFrames", value: val});
+    });
+    document.querySelectorAll(".mode-option").forEach(option => {
+        option.addEventListener("click", () => {
+            const scrollPausedValue = option.dataset.mode === "action";
+            chrome.runtime.sendMessage({action: "setMode", isScrollPaused: scrollPausedValue});
+        });
+    });
+    document.querySelector(".mode-box").addEventListener("click", () => {
+        const dropdown = document.getElementById("mode-dropdown");
+        dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
+    });
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -103,6 +134,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             behavior: "smooth"
         });
     }
+    if (message.action === "hidePanelForCapture") {
+        const panel = document.getElementById("gesture-panel");
+        const collapsed = document.getElementById("gesture-collapsed");
+        if (panel) panel.style.visibility = "hidden";
+        if (collapsed) collapsed.style.visibility = "hidden";
+        sendResponse({done: true});
+        return true;
+    }
+    if (message.action === "showPanelAfterCapture") {
+        const panel = document.getElementById("gesture-panel");
+        const collapsed = document.getElementById("gesture-collapsed");
+        if (panel) panel.style.visibility = "visible";
+        if (collapsed) collapsed.style.visibility = "visible";
+    }
     if (message.action === "toggleVideo") {
         const video = document.querySelector("video");
         if (video) {
@@ -112,7 +157,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === "statusUpdate") {
         updatePanelStatus(message);
     }
-    
 });
 
 chrome.storage.local.get("cameraActive", (result) => {

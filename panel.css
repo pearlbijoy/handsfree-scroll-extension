@@ -151,5 +151,30 @@
   background: #22c55e;
   border: 2px solid rgba(30,34,42,1);
 }
-.status-dot-mini.orange { background: #f97316; }
+.status-dot-mini.orange { background: #ffcb69; }
 .status-dot-mini.red { background: #ef4444; }
+
+.mode-box {
+    position: relative;
+    cursor: pointer;
+}
+.mode-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: rgba(20, 23, 30, 0.95);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    margin-top: 4px;
+    z-index: 10;
+    min-width: 140px;
+    overflow: hidden;
+}
+.mode-option {
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #e5e7eb;
+}
+.mode-option:hover {
+    background: rgba(255,255,255,0.08);
+}

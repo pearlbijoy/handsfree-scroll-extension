@@ -11,34 +11,49 @@ let isScrollPaused = false;
 
 //for checking to pause scroll
 let openPalmHoldCount = 0;
-const HOLD_FRAMES_REQUIRED = 7;
+let HOLD_FRAMES_REQUIRED = 6;
 let scrollPauseToggleFired = false; 
 
 //for scrolling up and down
 let wasIndexOnlyLastFrame = false;
 let wasIndexMiddleLastFrame = false;
-const FLICK_SCROLL_AMOUNT = 300; 
+let FLICK_SCROLL_AMOUNT = 400; 
 
 //to pause everything
 let thumbsUpHoldCount = 0;
 let thumbsUpToggleFired = false;
-const THUMBS_UP_HOLD_FRAMES = 5;
+let THUMBS_UP_HOLD_FRAMES = 7;
 
 //to pause/play yt video
 let pauseHoldCount = 0;
-const PAUSE_HOLD_FRAMES = 5; // ~1.5s
+let PAUSE_HOLD_FRAMES = 5; // ~1.5s
 let pauseToggleFired = false;
 
 // two (screenshot) tracking
 let screenShotHoldCount = 0;
-const SCREENSHOT_HOLD_FRAMES = 5;
+let SCREENSHOT_HOLD_FRAMES = 5;
 let screenShotToggleFired = false;
 
 
-
-
-let previousY=null;
-
+//checking if any messages from the panel were received
+chrome.runtime.onMessage.addListener((message) => {
+    if (message.action === "togglePauseFromPanel") {
+        isPaused = !isPaused;
+        console.log("Paused (from panel):", isPaused);
+    }
+    if (message.action === "setSensitivity") {
+        FLICK_SCROLL_AMOUNT = message.value; // needs to change from const to let
+    }
+    if (message.action === "setHoldFrames") {
+        HOLD_FRAMES_REQUIRED = message.value; // same — was const, needs to be let
+        PAUSE_HOLD_FRAMES = message.value;
+        SCREENSHOT_HOLD_FRAMES = message.value;
+    }
+    if (message.action === "setMode") {
+        isScrollPaused = message.isScrollPaused;
+        console.log("Mode set from panel:", isScrollPaused ? "Action Mode" : "Scroll Mode");
+    }
+});
 
 async function getCamera(){
     console.log("Asking for camera..");
