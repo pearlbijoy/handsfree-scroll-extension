@@ -33,11 +33,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return;
     }
 
-    const offscreenOnlyActions = ["togglePauseFromPanel", "setSensitivity", "setHoldFrames","setMode"];
-    if (offscreenOnlyActions.includes(message.action)) {
-        chrome.runtime.sendMessage(message); 
-        return;
-    }
+    // const offscreenOnlyActions = ["togglePauseFromPanel", "setSensitivity", "setHoldFrames","setMode"];
+    // if (offscreenOnlyActions.includes(message.action) && !message._relayed) {
+    //     chrome.runtime.sendMessage({...message, _relayed: true});
+    //     return;
+    // }
 
     //to find which tab is active at the moment so that the action can be applied on that tab
     chrome.tabs.query(

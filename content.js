@@ -2,12 +2,12 @@ let panelInjected = false;
 
 function injectPanel(startCollapsed = true) {
     if (panelInjected) return;
+    panelInjected = true;
     fetch(chrome.runtime.getURL("panel.html"))
         .then(res => res.text())
         .then(html => {
             document.body.insertAdjacentHTML("beforeend", html);
             initPanel();
-            panelInjected = true;
             if (startCollapsed) {
                 
                 document.getElementById("gesture-panel").style.display = "none";
@@ -69,6 +69,46 @@ function updatePanelStatus(message) {
     }
 }
 
+function makeDraggable(el, handle) {
+    let offsetX = 0, offsetY = 0, isDragging = false;
+
+    handle.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        const rect = el.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+        e.preventDefault();
+    });
+
+    document.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+        el.style.left = (e.clientX - offsetX) + "px";
+        el.style.top = (e.clientY - offsetY) + "px";
+    });
+
+    document.addEventListener("mouseup", () => {
+        isDragging = false;
+    });
+}
+
+function syncPosition(fromEl, toEl) {
+    const fromRect = fromEl.getBoundingClientRect();
+    const centerX = fromRect.left + fromRect.width / 2;
+    const centerY = fromRect.top + fromRect.height / 2;
+
+    let newLeft = centerX - toEl.offsetWidth / 2;
+    let newTop = centerY - toEl.offsetHeight / 2;
+
+    // shouldn't end up partially or fully off-screen
+    const maxLeft = window.innerWidth - toEl.offsetWidth - 8;
+    const maxTop = window.innerHeight - toEl.offsetHeight - 8;
+    newLeft = Math.min(Math.max(newLeft, 8), maxLeft);
+    newTop = Math.min(Math.max(newTop, 8), maxTop);
+
+    toEl.style.left = newLeft + "px";
+    toEl.style.top = newTop + "px";
+}
+
 function initPanel() {
     const panel = document.getElementById("gesture-panel");
     const collapsed = document.getElementById("gesture-collapsed");
@@ -78,11 +118,13 @@ function initPanel() {
     });
 
     collapseBtn.addEventListener("click", () => {
+        syncPosition(panel, collapsed);
         panel.style.display = "none";
         collapsed.style.display = "flex";
     });
 
     collapsed.addEventListener("click", () => {
+        syncPosition(panel, collapsed);
         collapsed.style.display = "none";
         panel.style.display = "block";
     });
@@ -117,6 +159,8 @@ function initPanel() {
         const dropdown = document.getElementById("mode-dropdown");
         dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
     });
+    makeDraggable(panel, document.querySelector(".drag-handle"));
+    makeDraggable(collapsed, collapsed);
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
