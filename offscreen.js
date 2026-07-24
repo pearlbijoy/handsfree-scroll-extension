@@ -83,8 +83,14 @@ function getFingerState(hand) {
 }
 
 //defining the gestures
-function isThumbsUpPose(fingers) {
-    return fingers.thumb && !fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky;
+function isThumbsUpPose(fingers,hand) { //to ensure that it is an actual thumbs UP position and not thumb sideways position
+    const thumbPointingUp =  hand[4].y < hand[2].y &&
+                             hand[4].y < hand[1].y &&
+                             hand[4].y < hand[0].y &&
+                             hand[3].y< hand[5].y &&
+                             hand[3].y <hand[9].y;
+    return thumbPointingUp && !fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky;
+
 }
 
 function isOpenPalmPose(fingers) {
@@ -137,7 +143,7 @@ function detectHands(){
 
 
     //CHEKCING IF EVERYTHING NEEDS TO BE PAUSED
-    const currentThumbsUp = isThumbsUpPose(fingers);
+    const currentThumbsUp = isThumbsUpPose(fingers,hand);
     if (currentThumbsUp) {
         thumbsUpHoldCount++;
         if (thumbsUpHoldCount >= THUMBS_UP_HOLD_FRAMES && !thumbsUpToggleFired) {

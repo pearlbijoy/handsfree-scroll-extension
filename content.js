@@ -1,7 +1,5 @@
 let panelInjected = false;
-document.getElementById("end-btn").addEventListener("click", () => {
-    chrome.runtime.sendMessage({action: "requestStopCamera"});
-});
+
 function injectPanel(startCollapsed = true) {
     if (panelInjected) return;
     fetch(chrome.runtime.getURL("panel.html"))
@@ -11,6 +9,7 @@ function injectPanel(startCollapsed = true) {
             initPanel();
             panelInjected = true;
             if (startCollapsed) {
+                
                 document.getElementById("gesture-panel").style.display = "none";
                 document.getElementById("gesture-collapsed").style.display = "flex";
             }
@@ -74,6 +73,9 @@ function initPanel() {
     const panel = document.getElementById("gesture-panel");
     const collapsed = document.getElementById("gesture-collapsed");
     const collapseBtn = document.getElementById("collapse-btn");
+    document.getElementById("end-btn").addEventListener("click", () => {
+    chrome.runtime.sendMessage({action: "requestStopCamera"});
+    });
 
     collapseBtn.addEventListener("click", () => {
         panel.style.display = "none";
