@@ -89,6 +89,7 @@
       Guide
     </button>
     <button id="end-btn" class="panel-btn">End</button>
+    <button id="feed-toggle-btn" class="panel-btn">Live Feed</button>
     <!-- <button id="settings-btn" class="panel-btn" disabled>Settings</button> -->
   </div>
 </div>
@@ -97,6 +98,14 @@
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
   <span class="status-dot-mini" id="dot-collapsed"></span>
 </div> 
+
+<div id="hand-feed-panel" style="display:none;">
+    <div class="feed-panel-header">
+        <span>Live Feed</span>
+        <button id="feed-close-btn" class="icon-btn">✕</button>
+    </div>
+    <img id="hand-feed-img">
+</div>
 
 <div id="guide-overlay" class="guide-overlay" style="display:none;">
   <div class="guide-modal">

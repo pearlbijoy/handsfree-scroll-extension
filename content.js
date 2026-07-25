@@ -1,5 +1,4 @@
 let panelInjected = false;
-
 let lastGestureTimestamp = null;
 
 function formatElapsed(ms) {
@@ -86,6 +85,9 @@ function updatePanelStatus(message) {
         lastGestureTimestamp = Date.now();
         updateLastGestureTimeDisplay();
     }
+
+    const rateEl = document.getElementById("detection-rate");
+    if (rateEl) rateEl.textContent = `~${message.detectionRate} ms / frame`;    
 }
 
 function makeDraggable(el, handle,onClick) {
@@ -159,10 +161,6 @@ function initPanel() {
         chrome.runtime.sendMessage({action: "setHoldFrames", value: HOLD_DEFAULT});
     });
 
-    document.getElementById("end-btn").addEventListener("click", () => {
-    chrome.runtime.sendMessage({action: "requestStopCamera"});
-    });
-
     collapseBtn.addEventListener("click", () => {
         collapsed.style.visibility = "hidden";
         collapsed.style.display = "flex";
@@ -179,6 +177,8 @@ function initPanel() {
 
     document.getElementById("end-btn").addEventListener("click", () => {
         chrome.runtime.sendMessage({action: "requestStopCamera"});
+        document.getElementById("hand-feed-panel").style.display = "none";
+        chrome.runtime.sendMessage({action: "setFeedVisible", value: false});
     });
 
     document.getElementById("sensitivity-slider").addEventListener("input", (e) => {
@@ -203,7 +203,7 @@ function initPanel() {
         if (e.target.id === "guide-overlay") {
             document.getElementById("guide-overlay").style.display = "none";
         }
-});
+    });
 
     document.querySelectorAll(".mode-option").forEach(option => {
         option.addEventListener("click", () => {
@@ -215,6 +215,20 @@ function initPanel() {
         const dropdown = document.getElementById("mode-dropdown");
         dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
     });
+
+    document.getElementById("feed-toggle-btn").addEventListener("click", () => {
+        const feedPanel = document.getElementById("hand-feed-panel");
+        const isOpen = feedPanel.style.display !== "none";
+        feedPanel.style.display = isOpen ? "none" : "block";
+        chrome.runtime.sendMessage({action: "setFeedVisible", value: !isOpen});
+    });
+
+    document.getElementById("feed-close-btn").addEventListener("click", () => {
+        document.getElementById("hand-feed-panel").style.display = "none";
+        chrome.runtime.sendMessage({action: "setFeedVisible", value: false});
+    });
+
+    makeDraggable(document.getElementById("hand-feed-panel"), document.querySelector(".feed-panel-header"));
     makeDraggable(panel, document.querySelector(".drag-handle"));
     makeDraggable(collapsed, collapsed);
 
@@ -246,10 +260,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const panel = document.getElementById("gesture-panel");
         const collapsed = document.getElementById("gesture-collapsed");
         const guide = document.getElementById("guide-overlay");
+        const feed = document.getElementById("hand-feed-panel");
 
         if (panel) panel.style.visibility = "hidden";
         if (collapsed) collapsed.style.visibility = "hidden";
         if (guide) guide.style.visibility = "hidden";
+        if (feed) feed.style.visibility = "hidden";   
 
         sendResponse({done: true});
         return true;
@@ -258,10 +274,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const panel = document.getElementById("gesture-panel");
         const collapsed = document.getElementById("gesture-collapsed");
         const guide = document.getElementById("guide-overlay");
+        const feed = document.getElementById("hand-feed-panel"); 
 
         if (panel) panel.style.visibility = "visible";
         if (collapsed) collapsed.style.visibility = "visible";
         if (guide) guide.style.visibility = "visible";
+        if (feed) feed.style.visibility = "visible";  
     }
     if (message.action === "toggleVideo") {
         const video = document.querySelector("video");
@@ -271,6 +289,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     if (message.type === "statusUpdate") {
         updatePanelStatus(message);
+    }
+    if (message.type === "handFeedFrame") {
+        const img = document.getElementById("hand-feed-img");
+        if (img) img.src = message.image;
     }
 });
 

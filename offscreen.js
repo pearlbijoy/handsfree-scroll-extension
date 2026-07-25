@@ -34,6 +34,28 @@ let screenShotHoldCount = 0;
 let SCREENSHOT_HOLD_FRAMES = 6;
 let screenShotToggleFired = false;
 
+//for the live feed
+let isFeedVisible = false;
+let latestHand = null;    
+let feedInterval = null;   
+const feedCanvas = document.createElement("canvas");
+feedCanvas.width = 400;
+feedCanvas.height = 225;
+const feedCtx = feedCanvas.getContext("2d");
+
+//for the detection rate
+let lastFrameTime = performance.now();
+let currentDetectionRate = 300;
+
+const HAND_CONNECTIONS = [
+    [0,1],[1,2],[2,3],[3,4],
+    [0,5],[5,6],[6,7],[7,8],
+    [5,9],[9,10],[10,11],[11,12],
+    [9,13],[13,14],[14,15],[15,16],
+    [13,17],[17,18],[18,19],[19,20],
+    [0,17]
+];
+
 
 //checking if any messages from the panel were received
 chrome.runtime.onMessage.addListener((message) => {
@@ -53,11 +75,26 @@ chrome.runtime.onMessage.addListener((message) => {
         isScrollPaused = message.isScrollPaused;
         console.log("Mode set from panel:", isScrollPaused ? "Action Mode" : "Scroll Mode");
     }
+    if (message.action === "setFeedVisible") {
+        isFeedVisible = message.value;
+        if (isFeedVisible && !feedInterval) {
+            feedInterval = setInterval(drawFeedFrame, 100);   // fast, independent redraw
+        }
+        if (!isFeedVisible && feedInterval) {
+            clearInterval(feedInterval);
+            feedInterval = null;
+        }
+    }
 });
 
 async function getCamera(){
     console.log("Asking for camera..");
-    const videoFeed= await navigator.mediaDevices.getUserMedia({video:true});
+    const videoFeed= await navigator.mediaDevices.getUserMedia({
+        video:{
+            width:{ideal:1280},
+            height:{ideal:720}
+        }
+    });
     videoElement=document.querySelector("#livecam");
     videoElement.srcObject=videoFeed;
     console.log("Camera Active");
@@ -73,6 +110,32 @@ async function loadHandLandmarker(){
         console.log("Landmarker object was created successfully.");
     }
     const handLandmarkerReady=true;
+}
+
+function drawFeedFrame() {
+    feedCtx.drawImage(videoElement, 0, 0, feedCanvas.width, feedCanvas.height);
+
+    if (latestHand) {
+        feedCtx.strokeStyle = "#828683";
+        feedCtx.beginPath();
+        for (let [start, end] of HAND_CONNECTIONS) {
+            feedCtx.moveTo(latestHand[start].x * feedCanvas.width, latestHand[start].y * feedCanvas.height);
+            feedCtx.lineTo(latestHand[end].x * feedCanvas.width, latestHand[end].y * feedCanvas.height);
+        }
+        feedCtx.stroke();
+
+        for (let point of latestHand) {
+            feedCtx.beginPath();
+            feedCtx.arc(point.x * feedCanvas.width, point.y * feedCanvas.height, 2, 0, 2 * Math.PI);
+            feedCtx.fillStyle = "#d4d2cb";
+            feedCtx.fill();
+        }
+    }
+
+    chrome.runtime.sendMessage({
+        type: "handFeedFrame",
+        image: feedCanvas.toDataURL("image/jpeg", 0.6)
+    });
 }
 
 function getDistance(hand,indexA,indexB){
@@ -133,11 +196,16 @@ function sendStatusUpdate(handDetected, lastGestureText) {
         handDetected: handDetected,
         isPaused: isPaused,
         isScrollPaused: isScrollPaused,
-        lastGesture: lastGestureText
+        lastGesture: lastGestureText,
+        detectionRate: currentDetectionRate
     });
 }
 
 function detectHands(){
+    const now = performance.now();
+    currentDetectionRate = Math.round(now - lastFrameTime);
+    lastFrameTime = now;
+
     const result= handLandmarker.detectForVideo(videoElement, performance.now());
     console.log(performance.now());
     if (result.landmarks.length === 0) {
@@ -150,12 +218,14 @@ function detectHands(){
         pauseHoldCount = 0;
         pauseToggleFired = false;
         sendStatusUpdate(false, null);
+        latestHand = null;
         setTimeout(detectHands, 100);
         return;
     }
 
     let hand=result.landmarks[0];
     fingers=getFingerState(hand);
+    latestHand = hand;
     //console.log(fingers);
 
 

@@ -246,3 +246,35 @@
 .guide-mode-label.green { color: #22c55e; }
 .guide-mode-label.purple { color: #a78bfa; }
 .guide-mode-desc { font-size: 11px; color: #94a3b8; margin-bottom: 10px; }
+
+#hand-feed-panel {
+  position: fixed;
+  top: 100px;
+  left: 460px;
+  width: 400px;
+  background: rgba(30, 34, 42, 0.9);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 10px;
+  z-index: 999999;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+}
+
+.feed-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: move;
+  color: #e5e7eb;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+#hand-feed-img {
+  display: block;
+  border-radius: 8px;
+  width: 100%;
+  transform: scaleX(-1);
+}
