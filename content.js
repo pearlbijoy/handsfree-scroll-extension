@@ -1,5 +1,23 @@
 let panelInjected = false;
 
+let lastGestureTimestamp = null;
+
+function formatElapsed(ms) {
+    const s = Math.floor(ms / 1000);
+    if (s < 5) return "just now";
+    if (s < 60) return `${s}s ago`;
+    return `${Math.floor(s / 60)}m ago`;
+}
+
+function updateLastGestureTimeDisplay() {
+    if (lastGestureTimestamp == null) return;
+    const timeEl = document.getElementById("last-gesture-time");
+    if (!timeEl) return;
+    timeEl.lastChild.textContent = " " + formatElapsed(Date.now() - lastGestureTimestamp);
+}
+
+setInterval(updateLastGestureTimeDisplay, 1000);
+
 function injectPanel(startCollapsed = true) {
     if (panelInjected) return;
     panelInjected = true;
@@ -37,7 +55,6 @@ function updatePanelStatus(message) {
     dotHand.className = "status-dot" + (message.handDetected ? "" : " red");
     handSub.textContent = message.handDetected ? "On track" : "No hand in frame";
 
-    // Mode label + collapsed dot color, per your scheme:
     // green = action mode, orange = scroll mode, red = detection off
     let modeColorClass = "";
     let modeText = "";
@@ -66,10 +83,8 @@ function updatePanelStatus(message) {
 
     if (message.lastGesture) {
         document.getElementById("last-gesture").textContent = message.lastGesture;
-        document.getElementById("last-gesture-time").querySelector("span")?.remove(); // if you add a text node wrapper
-        // simplest: just update a timestamp
-        const timeEl = document.getElementById("last-gesture-time");
-        timeEl.lastChild.textContent = " just now";
+        lastGestureTimestamp = Date.now();
+        updateLastGestureTimeDisplay();
     }
 }
 
@@ -78,7 +93,6 @@ function makeDraggable(el, handle,onClick) {
 
     handle.addEventListener("mousedown", (e) => {
         isDragging = true;
-        moved= false;
         const rect = el.getBoundingClientRect();
         offsetX = e.clientX - rect.left;
         offsetY = e.clientY - rect.top;
@@ -100,7 +114,7 @@ function makeDraggable(el, handle,onClick) {
     });
 
     document.addEventListener("mouseup", () => {
-        if (isDragging && !moved && onClick) {
+        if (isDragging && onClick) {
             onClick();
         }
         isDragging = false;
@@ -150,9 +164,12 @@ function initPanel() {
     });
 
     collapseBtn.addEventListener("click", () => {
+        collapsed.style.visibility = "hidden";
+        collapsed.style.display = "flex";
         syncPosition(panel, collapsed);
         panel.style.display = "none";
-        collapsed.style.display = "flex";
+        collapsed.style.visibility = "visible";
+        
     });
 
     //sending message back to offscreen.js
@@ -202,9 +219,11 @@ function initPanel() {
     makeDraggable(collapsed, collapsed);
 
     collapsed.addEventListener("click", () => {
+        panel.style.visibility = "hidden";
+        panel.style.display = "block";
         syncPosition(collapsed, panel);
         collapsed.style.display = "none";
-        panel.style.display = "block";
+        panel.style.visibility = "visible";
     });
 }
 
@@ -226,16 +245,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "hidePanelForCapture") {
         const panel = document.getElementById("gesture-panel");
         const collapsed = document.getElementById("gesture-collapsed");
+        const guide = document.getElementById("guide-overlay");
+
         if (panel) panel.style.visibility = "hidden";
         if (collapsed) collapsed.style.visibility = "hidden";
+        if (guide) guide.style.visibility = "hidden";
+
         sendResponse({done: true});
         return true;
     }
     if (message.action === "showPanelAfterCapture") {
         const panel = document.getElementById("gesture-panel");
         const collapsed = document.getElementById("gesture-collapsed");
+        const guide = document.getElementById("guide-overlay");
+
         if (panel) panel.style.visibility = "visible";
         if (collapsed) collapsed.style.visibility = "visible";
+        if (guide) guide.style.visibility = "visible";
     }
     if (message.action === "toggleVideo") {
         const video = document.querySelector("video");

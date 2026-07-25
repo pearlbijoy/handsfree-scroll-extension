@@ -146,7 +146,9 @@ function detectHands(){
         openPalmHoldCount = 0;
         pauseHoldCount = 0;
         screenShotHoldCount = 0;
-        thumbsUpHoldCount = 0
+        thumbsUpHoldCount = 0;
+        pauseHoldCount = 0;
+        pauseToggleFired = false;
         sendStatusUpdate(false, null);
         setTimeout(detectHands, 100);
         return;
