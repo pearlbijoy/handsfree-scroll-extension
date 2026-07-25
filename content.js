@@ -1,24 +1,26 @@
 let panelInjected = false;
 let lastGestureTimestamp = null;
 
+//For detection rate display 
 function formatElapsed(ms) {
     const s = Math.floor(ms / 1000);
     if (s < 5) return "just now";
     if (s < 60) return `${s}s ago`;
     return `${Math.floor(s / 60)}m ago`;
 }
-
+// Recomputes and redraws the last gesture timestamp
 function updateLastGestureTimeDisplay() {
     if (lastGestureTimestamp == null) return;
     const timeEl = document.getElementById("last-gesture-time");
     if (!timeEl) return;
     timeEl.lastChild.textContent = " " + formatElapsed(Date.now() - lastGestureTimestamp);
 }
-
+//keeps the the update timestamp function running every second
 setInterval(updateLastGestureTimeDisplay, 1000);
 
+//Injects panel.html into the current page's DOM
 function injectPanel(startCollapsed = true) {
-    if (panelInjected) return;
+    if (panelInjected) return; //if the panel is already there then dont run
     panelInjected = true;
     fetch(chrome.runtime.getURL("panel.html"))
         .then(res => res.text())
@@ -26,13 +28,13 @@ function injectPanel(startCollapsed = true) {
             document.body.insertAdjacentHTML("beforeend", html);
             initPanel();
             if (startCollapsed) {
-                
                 document.getElementById("gesture-panel").style.display = "none";
                 document.getElementById("gesture-collapsed").style.display = "flex";
             }
         });
 }
 
+//Removes panel from page when camera is stopped(end is clicked)
 function removePanel() {
     const panel = document.getElementById("gesture-panel");
     const collapsed = document.getElementById("gesture-collapsed");
@@ -41,6 +43,7 @@ function removePanel() {
     panelInjected = false;
 }
 
+//updates colors/panel variables every detection cycle with current variables form offscreen.js
 function updatePanelStatus(message) {
     const dotHand = document.getElementById("dot-hand");
     const handSub = document.getElementById("hand-sub");
@@ -48,28 +51,34 @@ function updatePanelStatus(message) {
     const dotCollapsed = document.getElementById("dot-collapsed");
     const guideModeText = document.getElementById("guide-mode-text");
     const guideModeDot = document.getElementById("guide-mode-dot");
+
     if (!dotHand) return; // panel not injected yet
 
     // Hand detected dot
     dotHand.className = "status-dot" + (message.handDetected ? "" : " red");
     handSub.textContent = message.handDetected ? "On track" : "No hand in frame";
 
-    // green = action mode, orange = scroll mode, red = detection off
+    // green = action mode, orange = scroll mode,red = detection off
     let modeColorClass = "";
     let modeText = "";
+
     if (message.isPaused) {
         modeColorClass = "red";
         modeText = "Paused";
-    } else if (message.isScrollPaused) {
-        modeColorClass = ""; // green (default)
+    } 
+    else if (message.isScrollPaused) {
+        modeColorClass = ""; // green(default)
         modeText = "Action Mode";
-    } else {
+    } 
+    else {
         modeColorClass = "orange";
         modeText = "Scroll Mode";
     }
+
     modeValue.textContent = modeText;
     dotCollapsed.className = "status-dot-mini" + (modeColorClass ? " " + modeColorClass : "");
     
+    //to update the guide panel on what mode the user is currently in
     if (guideModeText) {
         guideModeText.textContent = modeText;
         guideModeDot.className = "status-dot" + (modeColorClass ? " " + modeColorClass : "");
@@ -90,9 +99,9 @@ function updatePanelStatus(message) {
     if (rateEl) rateEl.textContent = `~${message.detectionRate} ms / frame`;    
 }
 
+//Allows the panels to be draggable, prevents it from being dragged off the screen
 function makeDraggable(el, handle,onClick) {
     let offsetX = 0, offsetY = 0, isDragging = false;
-
     handle.addEventListener("mousedown", (e) => {
         isDragging = true;
         const rect = el.getBoundingClientRect();
@@ -123,6 +132,7 @@ function makeDraggable(el, handle,onClick) {
     });
 }
 
+//to sync the position of collapsed and expanded panels.
 function syncPosition(fromEl, toEl) {
     const fromRect = fromEl.getBoundingClientRect();
     const centerX = fromRect.left + fromRect.width / 2;
@@ -131,7 +141,7 @@ function syncPosition(fromEl, toEl) {
     let newLeft = centerX - toEl.offsetWidth / 2;
     let newTop = centerY - toEl.offsetHeight / 2;
 
-    // shouldn't end up partially or fully off-screen
+    //shouldn't end up partially or fully off-screen
     const maxLeft = window.innerWidth - toEl.offsetWidth - 8;
     const maxTop = window.innerHeight - toEl.offsetHeight - 8;
     newLeft = Math.min(Math.max(newLeft, 8), maxLeft);
@@ -141,24 +151,21 @@ function syncPosition(fromEl, toEl) {
     toEl.style.top = newTop + "px";
 }
 
+//Connects every interactive element in the panel.html after it has been inserted into the page
 function initPanel() {
     const panel = document.getElementById("gesture-panel");
     const collapsed = document.getElementById("gesture-collapsed");
     const collapseBtn = document.getElementById("collapse-btn");
-
     const SENSITIVITY_DEFAULT = 400;
     const HOLD_DEFAULT = 6;
 
-    document.getElementById("sensitivity-reset").addEventListener("click", () => {
-    document.getElementById("sensitivity-slider").value = SENSITIVITY_DEFAULT;
-    document.getElementById("sensitivity-val").textContent = SENSITIVITY_DEFAULT;
-    chrome.runtime.sendMessage({action: "setSensitivity", value: SENSITIVITY_DEFAULT});
-    });
-
-    document.getElementById("hold-reset").addEventListener("click", () => {
-        document.getElementById("hold-slider").value = HOLD_DEFAULT;
-        document.getElementById("hold-val").textContent = HOLD_DEFAULT;
-        chrome.runtime.sendMessage({action: "setHoldFrames", value: HOLD_DEFAULT});
+    //Collapsing and expanding panel related:
+   collapsed.addEventListener("click", () => {
+        panel.style.visibility = "hidden";
+        panel.style.display = "block";
+        syncPosition(collapsed, panel);
+        collapsed.style.display = "none";
+        panel.style.visibility = "visible";
     });
 
     collapseBtn.addEventListener("click", () => {
@@ -170,17 +177,13 @@ function initPanel() {
         
     });
 
-    //sending message back to offscreen.js
+    //Sending message back to offscreen.js
     document.getElementById("pause-btn").addEventListener("click", () => {
         chrome.runtime.sendMessage({action: "togglePauseFromPanel"});
     });
 
-    document.getElementById("end-btn").addEventListener("click", () => {
-        chrome.runtime.sendMessage({action: "requestStopCamera"});
-        document.getElementById("hand-feed-panel").style.display = "none";
-        chrome.runtime.sendMessage({action: "setFeedVisible", value: false});
-    });
-
+    //Slider related:
+    //Sliders pass their current value to offscreen.js
     document.getElementById("sensitivity-slider").addEventListener("input", (e) => {
         const val = Number(e.target.value);
         document.getElementById("sensitivity-val").textContent = val;
@@ -193,6 +196,20 @@ function initPanel() {
         chrome.runtime.sendMessage({action: "setHoldFrames", value: val});
     });
 
+     //Reset buttons:restore a slider to its default and tell offscreen.js
+    document.getElementById("sensitivity-reset").addEventListener("click", () => {
+        document.getElementById("sensitivity-slider").value = SENSITIVITY_DEFAULT;
+        document.getElementById("sensitivity-val").textContent = SENSITIVITY_DEFAULT;
+        chrome.runtime.sendMessage({action: "setSensitivity", value: SENSITIVITY_DEFAULT});
+    });
+
+    document.getElementById("hold-reset").addEventListener("click", () => {
+        document.getElementById("hold-slider").value = HOLD_DEFAULT;
+        document.getElementById("hold-val").textContent = HOLD_DEFAULT;
+        chrome.runtime.sendMessage({action: "setHoldFrames", value: HOLD_DEFAULT});
+    });
+
+    //Guide panel related:
     document.getElementById("guide-btn").addEventListener("click", () => {
         document.getElementById("guide-overlay").style.display = "flex";
     });
@@ -204,18 +221,23 @@ function initPanel() {
             document.getElementById("guide-overlay").style.display = "none";
         }
     });
-
+    
+    //Mode dropdown:
+    //Manual mode override dropdown, lets the user force Scroll/Action mode
     document.querySelectorAll(".mode-option").forEach(option => {
         option.addEventListener("click", () => {
             const scrollPausedValue = option.dataset.mode === "action";
             chrome.runtime.sendMessage({action: "setMode", isScrollPaused: scrollPausedValue});
         });
     });
+
     document.querySelector(".mode-box").addEventListener("click", () => {
         const dropdown = document.getElementById("mode-dropdown");
         dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
     });
 
+    //live feed related:
+    //Live feed panel toggle, tells offscreen.js whether to render frames or not base don whether its closed or not
     document.getElementById("feed-toggle-btn").addEventListener("click", () => {
         const feedPanel = document.getElementById("hand-feed-panel");
         const isOpen = feedPanel.style.display !== "none";
@@ -228,27 +250,28 @@ function initPanel() {
         chrome.runtime.sendMessage({action: "setFeedVisible", value: false});
     });
 
+    //everything draggable
     makeDraggable(document.getElementById("hand-feed-panel"), document.querySelector(".feed-panel-header"));
     makeDraggable(panel, document.querySelector(".drag-handle"));
     makeDraggable(collapsed, collapsed);
 
-    collapsed.addEventListener("click", () => {
-        panel.style.visibility = "hidden";
-        panel.style.display = "block";
-        syncPosition(collapsed, panel);
-        collapsed.style.display = "none";
-        panel.style.visibility = "visible";
-    });
+    //End everything when the button is clicked. Remove panels and live feed and stop camera
+    document.getElementById("end-btn").addEventListener("click", () => {
+        chrome.runtime.sendMessage({action: "requestStopCamera"});
+        document.getElementById("hand-feed-panel").style.display = "none";
+        chrome.runtime.sendMessage({action: "setFeedVisible", value: false});
+    });   
 }
 
+//Receives every message from other scripts
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log("Content script received:", message);
     if (message.action === "cameraStarted") {
         injectPanel();
     }
     if (message.action === "cameraStopped") {
         removePanel();
     }
+
     if (message.scrollAmount !== undefined) {
         window.scrollBy({
             top: message.scrollAmount,
@@ -256,6 +279,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             behavior: "smooth"
         });
     }
+
     if (message.action === "hidePanelForCapture") {
         const panel = document.getElementById("gesture-panel");
         const collapsed = document.getElementById("gesture-collapsed");
@@ -270,6 +294,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({done: true});
         return true;
     }
+
     if (message.action === "showPanelAfterCapture") {
         const panel = document.getElementById("gesture-panel");
         const collapsed = document.getElementById("gesture-collapsed");
@@ -281,21 +306,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (guide) guide.style.visibility = "visible";
         if (feed) feed.style.visibility = "visible";  
     }
+
     if (message.action === "toggleVideo") {
         const video = document.querySelector("video");
         if (video) {
             video.paused ? video.play():video.pause();
         }
     }
+
     if (message.type === "statusUpdate") {
         updatePanelStatus(message);
     }
+
     if (message.type === "handFeedFrame") {
         const img = document.getElementById("hand-feed-img");
         if (img) img.src = message.image;
     }
 });
 
+//to check whether camera is active and injects panel when a fresh page is loaded
 chrome.storage.local.get("cameraActive", (result) => {
     if (result.cameraActive) {
         injectPanel();

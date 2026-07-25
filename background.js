@@ -1,10 +1,10 @@
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log("Background received:", message);
+    //Screenshot request from offscreen.js as only background scripts can capture the visible tab
     if (message.action === "takeScreenshot") {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (!tabs[0]) return;
             const tabId = tabs[0].id;
-
+            //Hide the panel/feed/guide first so they don't show up in the screenshot itself, capture the tab, then bring them back once the image is saved
             chrome.tabs.sendMessage(tabId, {action: "hidePanelForCapture"}, () => {
                 chrome.tabs.captureVisibleTab(null, {format: "png"}, (dataUrl) => {
                     chrome.downloads.download({
@@ -17,6 +17,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
         return;
     }
+
+    //End button when clicked should shut the camera and detection and remove the panel from every tab
     if (message.action === "requestStopCamera") {
         chrome.offscreen.closeDocument();
         chrome.storage.local.set({cameraActive: false});
@@ -24,6 +26,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             tabs.forEach(tab => chrome.tabs.sendMessage(tab.id, {action: "cameraStopped"}).catch(() => {}));
         });
     }
+
+    //Status Broadcasts for variables from offscreen.js that need to be sent to every tab
     if (message.type === "statusUpdate") {
         chrome.tabs.query({}, (tabs) => {
             tabs.forEach(tab => {
@@ -33,7 +37,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return;
     }
 
-    //to find which tab is active at the moment so that the action can be applied on that tab
+    //to find which tab is active at the moment so that the action can be applied on that tab only( scrolling, toggle video)
     chrome.tabs.query(
         { active: true, currentWindow: true }, (tabs) => {
             if (tabs[0]) {

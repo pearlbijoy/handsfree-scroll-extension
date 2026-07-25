@@ -16,11 +16,13 @@ async function createOffscreen(){
     }
 }
 async function checkPermission(){
-    const result=await chrome.storage.local.get("cameraPermission");
-    if(result.cameraPermission=="received"){
+    const permissionStatus = await navigator.permissions.query({ name: "camera" });
+    if (permissionStatus.state === "granted") {
+        await chrome.storage.local.set({ cameraPermission: "received" });
         await createOffscreen();
-    }
-    else{
+    } 
+    else {
+        await chrome.storage.local.set({ cameraPermission: "not received" });
         chrome.tabs.create({url:"permission.html"});
     }
 }

@@ -1,3 +1,4 @@
+/* Main Panel */
 .gesture-panel {
   position: fixed;
   top: 100px;
@@ -35,6 +36,7 @@
 .icon-btn svg { width: 16px; height: 16px; }
 .icon-btn:hover { background: rgba(255,255,255,0.12); }
 
+/* ---- status row (hand detected /scroll active/detection active) ---- */
 .status-row {
   display: flex;
   justify-content: space-between;
@@ -65,6 +67,7 @@
 .status-title { font-weight: 600; font-size: 12px; color: #f1f5f9; }
 .status-sub { font-size: 11px; color: #94a3b8; }
 
+/* ---- inforows(current mode / last gesture / detection rate)---- */
 .mode-box, .info-row {
   display: flex;
   align-items: center;
@@ -92,6 +95,33 @@
 .info-time { font-size: 11px; color: #64748b; display: flex; align-items: center; gap: 4px; margin-top: 2px; }
 .tiny-icon { width: 11px; height: 11px; }
 
+/* ---- mode dropdown ---- */
+.mode-box {
+    position: relative;
+    cursor: pointer;
+}
+.mode-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: rgba(20, 23, 30, 0.95);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    margin-top: 4px;
+    z-index: 10;
+    min-width: 140px;
+    overflow: hidden;
+}
+.mode-option {
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #e5e7eb;
+}
+.mode-option:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+/* ---- sliders (scroll sensitivity / hold duration) ---- */
 .slider-row { padding: 10px 0; }
 .slider-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; color: #e5e7eb; }
 .slider-row input[type="range"] {
@@ -100,6 +130,22 @@
 }
 .slider-range { display: flex; justify-content: space-between; font-size: 10px; color: #64748b; margin-top: 2px; }
 
+.reset-btn {
+    margin-top: 6px;
+    background: none;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #94a3b8;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.reset-btn:hover {
+    background: rgba(255,255,255,0.08);
+    color: #e5e7eb;
+}
+
+/* ---- bottom action buttons (pause/guide/end/live feed) ---- */
 .button-row {
   display: flex;
   gap: 8px;
@@ -124,6 +170,8 @@
 .panel-btn:hover:not(:disabled) { background: rgba(255,255,255,0.12); }
 .panel-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+
+/* ----COLLAPSED ICON ----*/
 .gesture-collapsed {
   position: fixed;
   top: 100px;
@@ -154,46 +202,8 @@
 .status-dot-mini.orange { background: #ffcb69; }
 .status-dot-mini.red { background: #ef4444; }
 
-.mode-box {
-    position: relative;
-    cursor: pointer;
-}
-.mode-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background: rgba(20, 23, 30, 0.95);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 8px;
-    margin-top: 4px;
-    z-index: 10;
-    min-width: 140px;
-    overflow: hidden;
-}
-.mode-option {
-    padding: 8px 12px;
-    font-size: 12px;
-    color: #e5e7eb;
-}
-.mode-option:hover {
-    background: rgba(255,255,255,0.08);
-}
 
-.reset-btn {
-    margin-top: 6px;
-    background: none;
-    border: 1px solid rgba(255,255,255,0.15);
-    color: #94a3b8;
-    font-size: 11px;
-    padding: 3px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-.reset-btn:hover {
-    background: rgba(255,255,255,0.08);
-    color: #e5e7eb;
-}
-
+/*---- GESTURE GUIDE OVERLAY---- */
 .guide-overlay {
   position: fixed;
   inset: 0;
@@ -247,6 +257,8 @@
 .guide-mode-label.purple { color: #a78bfa; }
 .guide-mode-desc { font-size: 11px; color: #94a3b8; margin-bottom: 10px; }
 
+
+/* ---- LIVE FEED PANEL---- */
 #hand-feed-panel {
   position: fixed;
   top: 100px;
