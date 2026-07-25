@@ -70,14 +70,16 @@
 
   <div class="slider-row">
     <div class="slider-label"><span>Scroll Sensitivity</span><span id="sensitivity-val">400</span></div>
-    <input type="range" id="sensitivity-slider" min="200" max="1000" value="500">
+    <input type="range" id="sensitivity-slider" min="200" max="1000" value="400">
     <div class="slider-range"><span>Low</span><span>High</span></div>
+    <button id="sensitivity-reset" class="reset-btn">Reset</button>
   </div>
 
   <div class="slider-row">
-    <div class="slider-label"><span>Hold Duration</span><span id="hold-val">20</span></div>
-    <input type="range" id="hold-slider" min="4" max="9" value="5">
+    <div class="slider-label"><span>Hold Duration</span><span id="hold-val">6</span></div>
+    <input type="range" id="hold-slider" min="4" max="9" value="6">
     <div class="slider-range"><span>Shorter</span><span>Longer</span></div>
+    <button id="hold-reset" class="reset-btn">Reset</button>
   </div>
 
   <div class="button-row">
@@ -94,4 +96,159 @@
 <div id="gesture-collapsed" class="gesture-collapsed" style="display:none;">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
   <span class="status-dot-mini" id="dot-collapsed"></span>
+</div> 
+
+<div id="guide-overlay" class="guide-overlay" style="display:none;">
+  <div class="guide-modal">
+    <div class="guide-header">
+      <div class="guide-title-group">
+        <div class="icon-chip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v16"/><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/></svg>
+        </div>
+        <div>
+          <div class="guide-title">Gesture Guide</div>
+          <div class="guide-subtitle">Your quick reference for all gestures</div>
+        </div>
+      </div>
+      <div class="guide-status-pill">
+        <span class="status-dot" id="guide-mode-dot"></span>
+        You are in: <span id="guide-mode-text">Scroll Mode</span>
+      </div>
+      <button id="guide-close-btn" class="icon-btn guide-close">✕</button>
+    </div>
+
+    <div class="guide-tip-box">
+      Hold an open palm for <strong>~2 seconds</strong> to switch between Scroll Mode and Action Mode.
+    </div>
+
+    <div class="guide-section-label">Global (works in any mode)</div>
+    <div class="guide-grid">
+      <div class="guide-card global">
+        <div class="guide-icon large-icon">
+            <svg width="32" height="32" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+              <g>
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M35.236,59.6006h-9 c-8.321,0-14-6.681-14-15c0.0204-4.7991,1.7993-9.4241,5-13"/>
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M34.625,31.6006h-4.389 l7-18c0.811-2.084-2.79-3.8-5-1l-15,19"/>
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M37.448,35.1006 c0.1527,2.0638,1.9342,3.6226,4,3.5h13c1.933,0.2578,3.709-1.1001,3.9669-3.0331s-1.1001-3.709-3.0331-3.9669 c-0.3099-0.0413-0.6238-0.0413-0.9337,0h-13C39.3822,31.478,37.6007,33.0368,37.448,35.1006z"/>
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M38.305,56.4366 c0.1527,2.0638,1.9342,3.6226,4,3.5h7c1.933,0.2578,3.709-1.1001,3.9669-3.0331s-1.1001-3.709-3.0331-3.9669 c-0.3099-0.0413-0.6238-0.0413-0.9337,0h-7C40.2392,52.814,38.4577,54.3728,38.305,56.4366z"/>
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M33.236,42.4366 c0.1527,2.0638,1.9342,3.6226,4,3.5h19c1.933,0.2578,3.709-1.1001,3.9669-3.0331s-1.1001-3.709-3.0331-3.9669 c-0.3099-0.0413-0.6238-0.0413-0.9337,0h-19C35.1702,38.814,33.3887,40.3728,33.236,42.4366z"/>
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M35.236,49.4366 c0.1527,2.0638,1.9342,3.6226,4,3.5h15c1.933,0.2578,3.709-1.1001,3.9669-3.0331s-1.1001-3.709-3.0331-3.9669 c-0.3099-0.0413-0.6238-0.0413-0.9337,0h-15C37.1702,45.814,35.3887,47.3728,35.236,49.4366z"/>
+                <path fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2" d="M14.136,36.2626 c-1.176,2.4511-1.8253,5.1215-1.906,7.839c0,8.56,4.625,15.5,15.125,15.5"/>
+              </g>
+            </svg>
+          </div>
+        <div class="guide-card-text">
+          <div class="guide-card-title">Thumbs Up</div>
+          <div class="guide-card-sub">Hold ~1.5s</div>
+        </div>
+        <div class="guide-card-action">Pause / Resume<br>detection</div>
+      </div>
+
+      <div class="guide-card global orange">
+        <div class="guide-icon large-icon">
+          <svg width="32" height="32" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+            <g>
+              <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M47.9476,40.8241c1.0524,.1759,6.0224-2.6225,8.1478-4.0255,.1078-.0712,.2223-.1421,.3474-.213,4.0767-2.3119,7.0259-3.05,9.5563,.3959,.9708,1.3945,1.6556,4.3672-.0631,4.7371-7.936,2.2814-13.936,10.2814-13.936,10.2814-2.0073,2.3086-4.9867,6.8747-7.027,9.1543-7.2576,8.1088-22.24,9.3151-27.8661,0-2.5855-4.28-4.28-14.3835-5.9365-19.1019-1.2704-3.6188-5.6042-14.2812-5.6042-14.2812-1.9375-5.8125,4.0313-8.1562,6.8125-2.2912l3.1633,7.2935c.9192,2.1543,3.5826,3.0451,3.0183-.641l-3.4165-15.9358c-1.2651-6.863,5.7662-8.8,7.5405-1.2692l3.677,17.8734c0,.6266,1.9235,5.0953,1.512-2.8356l-.9266-20.0795c0-8.4583,7.82-7.9583,7.82,0l1.0147,21.9877s.6756,5.0852,2.515,0l3.6565-20.4127c1.4572-6.127,8.77-3.94,7.5747,2.0134l-4.199,23.441c-.3555,1.9131,.05,3.8665,1.8836,3.8665l.7354,.0424Z"/>
+            </g>
+          </svg>
+        </div>
+        <div class="guide-card-text">
+          <div class="guide-card-title">Open Palm</div>
+          <div class="guide-card-sub">Hold ~2s</div>
+        </div>
+        <div class="guide-card-action">Switch Mode<br>Scroll ↔ Action</div>
+      </div>
+    </div>
+
+    <div class="guide-mode-row">
+      <div class="guide-mode-col">
+        <div class="guide-mode-label green">→ Scroll Mode</div>
+        <div class="guide-mode-desc">Navigate the page</div>
+        <div class="guide-card">
+          <div class="guide-icon large-icon">
+              <svg width="30" height="30" viewBox="0 0 131 250" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M34 199 L34 187 C25 177 20 166 20 153 L20 120 C20 113 24 109 29 109 C34 109 37 113 37 119 L37 73 C37 66 41 62 46 62 C51 62 55 66 55 73 L55 113 L55 105 C55 99 59 96 64 96 C69 96 72 100 72 105 L72 116 L72 110 C72 105 76 102 81 102 C86 102 89 106 89 111 L89 122 L89 117 C89 112 93 109 98 109 C103 109 106 113 106 118 L106 154 C106 167 101 177 94 187 L94 199 Z"/>
+                <path d="M91 62 C108 69 113 87 111 103 C110 116 106 128 99 139"/>
+                <path d="M91 62 L98 74"/>
+                <path d="M91 62 L104 59"/>
+                <path d="M99 139 L94 126"/>
+                <path d="M99 139 L109 130"/>
+              </svg>
+            </div>
+          <div class="guide-card-text">
+            <div class="guide-card-title">Index Finger Only</div>
+            <div class="guide-card-sub">Curl → Extend</div>
+          </div>
+          <div class="guide-card-action">Scroll Down ↓</div>
+        </div>
+        <div class="guide-card">
+          <div class="guide-icon large-icon">
+            <svg width="30" height="30" viewBox="0 0 131 250" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M37 215 L37 203 C28 194 23 183 23 169 L23 136 C23 129 27 125 32 125 C37 125 40 129 40 135 L40 77 C40 70 44 66 49 66 C54 66 58 70 58 77 L58 132 L58 76 C58 69 62 65 67 65 C72 65 76 69 76 76 L76 136 L76 123 C76 117 80 114 85 114 C90 114 93 118 93 123 L93 137 L93 131 C93 126 97 123 102 123 C107 123 110 127 110 132 L110 170 C110 183 105 194 97 203 L97 215 Z"/>
+              <path d="M92 81 C109 88 114 105 112 122 C111 136 107 148 100 159"/>
+              <path d="M92 81 L99 93"/>
+              <path d="M92 81 L105 78"/>
+              <path d="M100 159 L95 146"/>
+              <path d="M100 159 L110 150"/>
+            </svg>
+          </div>
+          <div class="guide-card-text">
+            <div class="guide-card-title">Index + Middle</div>
+            <div class="guide-card-sub">Extend → Curl</div>
+          </div>
+          <div class="guide-card-action">Scroll Up ↑</div>
+        </div>
+      </div>
+
+      <div class="guide-mode-col">
+        <div class="guide-mode-label purple">→ Action Mode</div>
+        <div class="guide-mode-desc">Perform actions</div>
+        <div class="guide-card">
+          <div class="guide-icon large-icon">
+            <svg width="32" height="32" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+              <g>
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m52.62 31.13 1.8-22.18c-0.3427-4.964-6.779-5.02-7.227-0.026l-2.42 17.36c-0.3 2.179-1.278 3.962-2.166 3.962s-1.845-1.785-2.126-3.967l-2.231-17.34c-0.8196-5.278-7.439-4.322-7.037 0.0011l2.527 21.03"/>
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m53.63 50.08c0 9.872-8.02 16.88-17.89 16.88"/>
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m43.74 47.29v-2.333c0-1.1-1.789-2.2-3.976-2.441l-1.049-0.117c-2.187-0.242-3.976-1.851-3.976-3.774s1.8-3.334 4-3.334h10c2.201-0.0448 4.057 1.632 4.235 3.826l0.657 11.21"/>
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m37.96 50.36c1.63-1.48 3.624-2.5 5.777-2.958"/>
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="m18.53 52.1c1.142 8.6 8.539 14.98 17.21 14.86 9.667 0 17.89-6.833 17.89-16.88"/>
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m31.75 49.72c0 1.258-0.6709 2.42-1.76 3.048s-2.431 0.6288-3.52 0-1.76-1.791-1.76-3.048v-15.96c0-1.258 0.6709-2.42 1.76-3.048s2.431-0.6288 3.52 0c1.089 0.6288 1.76 1.791 1.76 3.049z"/>
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m24.71 44.94c0 1.262-0.6709 2.427-1.76 3.058s-2.431 0.6308-3.52 0c-1.089-0.6308-1.76-1.796-1.76-3.058v-7.937c0-1.262 0.6709-2.427 1.76-3.058 1.089-0.6308 2.431-0.6308 3.52 0s1.76 1.796 1.76 3.058z"/>
+              </g>
+            </svg>
+          </div>
+          <div class="guide-card-text">
+            <div class="guide-card-title">Index + Middle (peace)</div>
+            <div class="guide-card-sub">Hold ~1.5s</div>
+          </div>
+          <div class="guide-card-action">Take Screenshot</div>
+        </div>
+        <div class="guide-card">
+          <div class="guide-icon large-icon">
+              <svg width="32" height="32" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+                <g>
+                  <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M43.7413,34.9892v-2.333 c0-1.1-1.789-2.2-3.976-2.441l-1.049-0.117c-2.187-0.242-3.976-1.851-3.976-3.774s1.8-3.334,4-3.334h10 c2.2011-0.0448,4.0567,1.6316,4.235,3.826l0.657,11.213"/>
+                  <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M37.9633,38.0552 c1.6302-1.4796,3.6236-2.5003,5.777-2.958"/>
+                  <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M16.7761,39.479 c1.1988,9.0291,8.9653,15.7322,18.0727,15.5981c10.1492,0,18.7855-7.1738,18.7855-17.7199"/>
+                  <line x1="16.7761" x2="16.7761" y1="39.479" y2="35.9583" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                  <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.3076,32.9647 c-2.0638-0.1527-3.6226-1.9342-3.5-4v-7c-0.2578-1.933,1.1001-3.709,3.0331-3.9669c1.933-0.2578,3.709,1.1001,3.9669,3.0331 c0.0413,0.3099,0.0413,0.6239,0,0.9337v7C23.9302,31.0305,22.3714,32.812,20.3076,32.9647z"/>
+                  <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M28.7444,31.8273 c-3.322,1.2271-4.997-1.9342-4.8744-4v-7c-0.2578-1.933,1.1001-3.709,3.0331-3.9669c1.933-0.2578,3.709,1.1001,3.9669,3.0331 c0.0413,0.3099,0.0413,0.6239,0,0.9337"/>
+                  <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M30.9324,24.4656V19.148 c-0.2578-1.933,1.1001-3.709,3.0331-3.9669c1.933-0.2578,3.709,1.1001,3.9669,3.0331c0.0413,0.3099,0.0413,0.6239,0,0.9337"/>
+                  <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M37.9948,19.148 c-0.2578-1.933,1.1001-3.709,3.0331-3.9669c1.933-0.2578,3.709,1.1001,3.9669,3.0331c0.0413,0.3099,0.0413,0.6239,0,0.9337"/>
+                </g>
+              </svg>
+            </div>
+            <div class="guide-card-text">
+            <div class="guide-card-title">Fist</div>
+            <div class="guide-card-sub">Hold ~1.5s</div>
+          </div>
+          <div class="guide-card-action">Pause / Resume<br>Video</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="guide-tip-box subtle">
+      Tip: Keep your hand clearly visible to the camera and hold steady for best results.
+    </div>
+  </div>
 </div>

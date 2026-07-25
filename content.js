@@ -29,7 +29,8 @@ function updatePanelStatus(message) {
     const handSub = document.getElementById("hand-sub");
     const modeValue = document.getElementById("mode-value");
     const dotCollapsed = document.getElementById("dot-collapsed");
-
+    const guideModeText = document.getElementById("guide-mode-text");
+    const guideModeDot = document.getElementById("guide-mode-dot");
     if (!dotHand) return; // panel not injected yet
 
     // Hand detected dot
@@ -52,8 +53,11 @@ function updatePanelStatus(message) {
     }
     modeValue.textContent = modeText;
     dotCollapsed.className = "status-dot-mini" + (modeColorClass ? " " + modeColorClass : "");
-    console.log(modeColorClass);
-    // Last gesture
+    
+    if (guideModeText) {
+        guideModeText.textContent = modeText;
+        guideModeDot.className = "status-dot" + (modeColorClass ? " " + modeColorClass : "");
+    }
 
     const dotScroll = document.getElementById("dot-scroll");
     const scrollSub = document.getElementById("scroll-sub");
@@ -69,11 +73,12 @@ function updatePanelStatus(message) {
     }
 }
 
-function makeDraggable(el, handle) {
+function makeDraggable(el, handle,onClick) {
     let offsetX = 0, offsetY = 0, isDragging = false;
 
     handle.addEventListener("mousedown", (e) => {
         isDragging = true;
+        moved= false;
         const rect = el.getBoundingClientRect();
         offsetX = e.clientX - rect.left;
         offsetY = e.clientY - rect.top;
@@ -82,11 +87,22 @@ function makeDraggable(el, handle) {
 
     document.addEventListener("mousemove", (e) => {
         if (!isDragging) return;
-        el.style.left = (e.clientX - offsetX) + "px";
-        el.style.top = (e.clientY - offsetY) + "px";
+        let newLeft = e.clientX - offsetX;
+        let newTop = e.clientY - offsetY;
+
+        const maxLeft = window.innerWidth - el.offsetWidth - 8;
+        const maxTop = window.innerHeight - el.offsetHeight - 8;
+        newLeft = Math.min(Math.max(newLeft, 8), maxLeft);
+        newTop = Math.min(Math.max(newTop, 8), maxTop);
+
+        el.style.left = newLeft + "px";
+        el.style.top = newTop + "px";
     });
 
     document.addEventListener("mouseup", () => {
+        if (isDragging && !moved && onClick) {
+            onClick();
+        }
         isDragging = false;
     });
 }
@@ -113,6 +129,22 @@ function initPanel() {
     const panel = document.getElementById("gesture-panel");
     const collapsed = document.getElementById("gesture-collapsed");
     const collapseBtn = document.getElementById("collapse-btn");
+
+    const SENSITIVITY_DEFAULT = 400;
+    const HOLD_DEFAULT = 6;
+
+    document.getElementById("sensitivity-reset").addEventListener("click", () => {
+    document.getElementById("sensitivity-slider").value = SENSITIVITY_DEFAULT;
+    document.getElementById("sensitivity-val").textContent = SENSITIVITY_DEFAULT;
+    chrome.runtime.sendMessage({action: "setSensitivity", value: SENSITIVITY_DEFAULT});
+    });
+
+    document.getElementById("hold-reset").addEventListener("click", () => {
+        document.getElementById("hold-slider").value = HOLD_DEFAULT;
+        document.getElementById("hold-val").textContent = HOLD_DEFAULT;
+        chrome.runtime.sendMessage({action: "setHoldFrames", value: HOLD_DEFAULT});
+    });
+
     document.getElementById("end-btn").addEventListener("click", () => {
     chrome.runtime.sendMessage({action: "requestStopCamera"});
     });
@@ -121,12 +153,6 @@ function initPanel() {
         syncPosition(panel, collapsed);
         panel.style.display = "none";
         collapsed.style.display = "flex";
-    });
-
-    collapsed.addEventListener("click", () => {
-        syncPosition(panel, collapsed);
-        collapsed.style.display = "none";
-        panel.style.display = "block";
     });
 
     //sending message back to offscreen.js
@@ -149,6 +175,19 @@ function initPanel() {
         document.getElementById("hold-val").textContent = val;
         chrome.runtime.sendMessage({action: "setHoldFrames", value: val});
     });
+
+    document.getElementById("guide-btn").addEventListener("click", () => {
+        document.getElementById("guide-overlay").style.display = "flex";
+    });
+    document.getElementById("guide-close-btn").addEventListener("click", () => {
+        document.getElementById("guide-overlay").style.display = "none";
+    });
+    document.getElementById("guide-overlay").addEventListener("click", (e) => {
+        if (e.target.id === "guide-overlay") {
+            document.getElementById("guide-overlay").style.display = "none";
+        }
+});
+
     document.querySelectorAll(".mode-option").forEach(option => {
         option.addEventListener("click", () => {
             const scrollPausedValue = option.dataset.mode === "action";
@@ -161,6 +200,12 @@ function initPanel() {
     });
     makeDraggable(panel, document.querySelector(".drag-handle"));
     makeDraggable(collapsed, collapsed);
+
+    collapsed.addEventListener("click", () => {
+        syncPosition(collapsed, panel);
+        collapsed.style.display = "none";
+        panel.style.display = "block";
+    });
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

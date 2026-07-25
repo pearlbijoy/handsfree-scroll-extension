@@ -26,12 +26,12 @@ let THUMBS_UP_HOLD_FRAMES = 7;
 
 //to pause/play yt video
 let pauseHoldCount = 0;
-let PAUSE_HOLD_FRAMES = 5; // ~1.5s
+let PAUSE_HOLD_FRAMES = 6; // ~1.5s
 let pauseToggleFired = false;
 
 // two (screenshot) tracking
 let screenShotHoldCount = 0;
-let SCREENSHOT_HOLD_FRAMES = 5;
+let SCREENSHOT_HOLD_FRAMES = 6;
 let screenShotToggleFired = false;
 
 
