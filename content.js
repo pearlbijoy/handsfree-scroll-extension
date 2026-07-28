@@ -1,5 +1,7 @@
 let panelInjected = false;
 let lastGestureTimestamp = null;
+let reinjectInProgress = false;
+let cameraIsActive = false;
 
 //For detection rate display 
 function formatElapsed(ms) {
@@ -21,16 +23,21 @@ setInterval(updateLastGestureTimeDisplay, 1000);
 //Injects panel.html into the current page's DOM
 function injectPanel(startCollapsed = true) {
     if (panelInjected) return; //if the panel is already there then dont run
+    reinjectInProgress = true;
     panelInjected = true;
+    console.log("injectPanel: starting fetch");
     fetch(chrome.runtime.getURL("panel.html"))
         .then(res => res.text())
         .then(html => {
+            console.log("injectPanel: fetch done, inserting HTML");
             document.body.insertAdjacentHTML("beforeend", html);
             initPanel();
             if (startCollapsed) {
                 document.getElementById("gesture-panel").style.display = "none";
                 document.getElementById("gesture-collapsed").style.display = "flex";
             }
+            reinjectInProgress = false;
+            console.log("injectPanel: done");
         });
 }
 
@@ -131,6 +138,28 @@ function makeDraggable(el, handle,onClick) {
         isDragging = false;
     });
 }
+
+function ensurePanelExists() {
+    if (cameraIsActive && !document.getElementById("gesture-panel")&& !reinjectInProgress) {
+        console.log("Panel missing — reinjecting");
+        panelInjected = false;
+        injectPanel();
+    }
+    else {
+        console.log("ensurePanelExists: panel present or camera off, no action");
+    }
+}
+
+function scheduleReinjectCheck() {
+    setTimeout(ensurePanelExists, 1000);
+}
+
+if (document.readyState === "complete") {
+    scheduleReinjectCheck();
+} else {
+    window.addEventListener("load", scheduleReinjectCheck);
+}
+setInterval(ensurePanelExists, 2000);
 
 //to sync the position of collapsed and expanded panels.
 function syncPosition(fromEl, toEl) {
@@ -266,9 +295,11 @@ function initPanel() {
 //Receives every message from other scripts
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "cameraStarted") {
+        cameraIsActive = true;
         injectPanel();
     }
     if (message.action === "cameraStopped") {
+        cameraIsActive = false;
         removePanel();
     }
 
@@ -327,6 +358,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 //to check whether camera is active and injects panel when a fresh page is loaded
 chrome.storage.local.get("cameraActive", (result) => {
     if (result.cameraActive) {
+        cameraIsActive = true;
         injectPanel();
     }
 });

@@ -18,6 +18,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return;
     }
 
+    if(message.action=== "reload"){
+        chrome.tabs.reload();
+    }
+
+    if (message.action === "zoomIn" || message.action === "zoomOut") {
+        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+            if (!tabs[0]) return;
+            const tabId = tabs[0].id;
+            const ZOOM_STEP = 0.1; // 10% per zoom action
+            chrome.tabs.getZoom(tabId, (currentZoom) => {
+                let newZoom = message.action === "zoomIn" ? currentZoom + ZOOM_STEP : currentZoom - ZOOM_STEP;
+                newZoom = Math.min(Math.max(newZoom, 0.25), 5); // clamp to Chrome's zoom range
+                chrome.tabs.setZoom(tabId, newZoom);
+            });
+        });
+    }
+
     //End button when clicked should shut the camera and detection and remove the panel from every tab
     if (message.action === "requestStopCamera") {
         chrome.offscreen.closeDocument();

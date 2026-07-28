@@ -5,13 +5,10 @@ let videoElement;
 let handLandmarker;
 let fingers;
 
-//pause states
-let isPaused = false;
-let isScrollPaused = false;
-
-//for checking to pause scroll
+//for switching modes
 let openPalmHoldCount = 0;
-let HOLD_FRAMES_REQUIRED = 6;
+let isScrollPaused = false;
+let HOLD_FRAMES_REQUIRED = 8;
 let scrollPauseToggleFired = false; 
 
 //for scrolling up and down
@@ -20,9 +17,10 @@ let wasIndexMiddleLastFrame = false;
 let FLICK_SCROLL_AMOUNT = 400; 
 
 //to pause everything
+let isPaused = false;
 let thumbsUpHoldCount = 0;
 let thumbsUpToggleFired = false;
-let THUMBS_UP_HOLD_FRAMES = 7;
+let THUMBS_UP_HOLD_FRAMES = 8;
 
 //to pause/play yt video
 let pauseHoldCount = 0;
@@ -33,6 +31,16 @@ let pauseToggleFired = false;
 let screenShotHoldCount = 0;
 let SCREENSHOT_HOLD_FRAMES = 6;
 let screenShotToggleFired = false;
+
+//Reload related
+let reloadHoldCount = 0;
+let RELOAD_HOLD_FRAMES = 6; 
+let reloadToggleFired = false;
+
+//Zoom related
+let PINCH_THRESHOLD = 0.06;
+let wasZoomInStart = false;
+let wasZoomOutStart = false;
 
 //for the detection rate
 let lastFrameTime = performance.now();
@@ -84,7 +92,6 @@ chrome.runtime.onMessage.addListener((message) => {
     }
 });
 
-
 //Getting feed and loading model
 async function getCamera(){
     console.log("Asking for camera..");
@@ -110,7 +117,6 @@ async function loadHandLandmarker(){
     }
     const handLandmarkerReady=true;
 }
-
 
 //Drawing the points over the live feed that is displayed via the panel
 function drawFeedFrame() {
@@ -139,7 +145,6 @@ function drawFeedFrame() {
     });
 }
 
-
 //For checking finger states(extended/curled)
 function getDistance(hand,indexA,indexB){
     let dx=hand[indexA].x-hand[indexB].x;
@@ -163,8 +168,8 @@ function getFingerState(hand) {
     };
 }
 
-
 //defining the gestures
+//COMMON
 function isThumbsUpPose(fingers,hand) { //to ensure that it is an actual thumbs UP position and not thumb sideways position
     const thumbPointingUp =  hand[4].y < hand[2].y &&
                              hand[4].y < hand[1].y &&
@@ -179,14 +184,20 @@ function isOpenPalmPose(fingers) {
     return fingers.thumb && fingers.index && fingers.middle && fingers.ring && fingers.pinky;
 }
 
+//ACTION MODE
 function isScreenShotPose(fingers) {
-    return fingers.index && fingers.middle && !fingers.ring && !fingers.pinky;
+    return !fingers.thumb && fingers.index && fingers.middle && !fingers.ring && !fingers.pinky;
 }
 
 function isPauseVideoPose(fingers) {
     return !fingers.index && !fingers.pinky && !fingers.middle && !fingers.ring;
 }
 
+function isReloadPose(fingers){
+    return fingers.index && fingers.middle && fingers.ring && fingers.pinky &&!fingers.thumb 
+}
+
+//SCROLL MODE
 function isIndexOnlyPose(fingers) {
     return fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky;
 }
@@ -194,6 +205,30 @@ function isIndexOnlyPose(fingers) {
 function isIndexMiddlePose(fingers) {
     return fingers.index && fingers.middle && !fingers.ring && !fingers.pinky;
 }
+
+function isStartZoomInPose(fingers, hand) {
+    console.log(getDistance(hand,4,8))
+    return getDistance(hand, 4, 8) < PINCH_THRESHOLD
+        && !fingers.middle && !fingers.ring && !fingers.pinky;
+}
+
+function isFinishZoomInPose(fingers) {
+    return fingers.thumb && fingers.index
+        && !fingers.middle && !fingers.ring && !fingers.pinky;
+}
+
+function isStartZoomOutPose(fingers) {
+    return fingers.thumb && fingers.index && fingers.middle
+        && !fingers.ring && !fingers.pinky;
+}
+
+function isFinishZoomOutPose(fingers, hand) {
+    return getDistance(hand, 4, 8) < PINCH_THRESHOLD
+        && getDistance(hand, 4, 12) < PINCH_THRESHOLD
+        && !fingers.ring && !fingers.pinky;
+}
+
+
 
 //Updating the panel
 function sendStatusUpdate(handDetected, lastGestureText) {
@@ -223,8 +258,11 @@ function detectHands(){
         pauseHoldCount = 0;
         screenShotHoldCount = 0;
         thumbsUpHoldCount = 0;
-        pauseHoldCount = 0;
+        reloadHoldCount = 0;
+        wasZoomInStart = false; 
+        wasZoomOutStart = false;
         pauseToggleFired = false;
+        screenShotToggleFired =false;
         latestHand = null;
         sendStatusUpdate(false, null);
         setTimeout(detectHands, 100);
@@ -321,6 +359,40 @@ function detectHands(){
                 screenShotHoldCount = 0;
                 screenShotToggleFired = false;
             }
+
+            //Reload
+            const currentReload = isReloadPose(fingers);
+            if (currentReload) {
+                reloadHoldCount++;
+                if (reloadHoldCount >= RELOAD_HOLD_FRAMES && !reloadToggleFired) {
+                    chrome.runtime.sendMessage({action: "reload"});
+                    sendStatusUpdate(true, "Reloaded Page");
+                    reloadToggleFired = true;
+                    console.log("Reloaded Page");
+                }
+            } 
+            else {
+                reloadHoldCount = 0;
+                reloadToggleFired = false;
+            }
+
+            const startZoomIn = isStartZoomInPose(fingers, hand);
+            const finishZoomIn = isFinishZoomInPose(fingers);
+
+            if (finishZoomIn && wasZoomInStart) {
+                chrome.runtime.sendMessage({action: "zoomIn"});
+            }
+            wasZoomInStart = startZoomIn || (wasZoomInStart && !finishZoomIn);
+
+            const startZoomOut = isStartZoomOutPose(fingers);
+            const finishZoomOut = isFinishZoomOutPose(fingers, hand);
+
+            if (finishZoomOut && wasZoomOutStart) {
+                chrome.runtime.sendMessage({action: "zoomOut"});
+                sendStatusUpdate(true, "Zoomed Out");
+            }
+            wasZoomOutStart = startZoomOut || (wasZoomOutStart && !finishZoomOut);
+
         }
            
     }
