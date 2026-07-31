@@ -73,10 +73,14 @@ function updatePanelStatus(message) {
         modeColorClass = "red";
         modeText = "Paused";
     } 
-    else if (message.isScrollPaused) {
-        modeColorClass = ""; // green(default)
+    else if (message.currentMode === "action") {
+        modeColorClass = "";
         modeText = "Action Mode";
     } 
+    else if (message.currentMode === "nav") {
+        modeColorClass = "blue";
+        modeText = "Nav Mode";
+    }
     else {
         modeColorClass = "orange";
         modeText = "Scroll Mode";
@@ -104,6 +108,33 @@ function updatePanelStatus(message) {
 
     const rateEl = document.getElementById("detection-rate");
     if (rateEl) rateEl.textContent = `~${message.detectionRate} ms / frame`;    
+}
+
+//for the switch mode pallete
+const MODE_INFO = {
+    scroll: { icon: "☝️", label: "Scroll Mode" },
+    action: { icon: "✋", label: "Action Mode" },
+    nav: { icon: "🧭", label: "Nav Mode" }
+};
+
+function renderPalette(currentMode, leftMode, rightMode) {
+    const slots = [
+        { id: "palette-left", mode: leftMode },
+        { id: "palette-center", mode: currentMode },
+        { id: "palette-right", mode: rightMode }
+    ];
+    slots.forEach(({ id, mode }) => {
+        const el = document.getElementById(id);
+        el.dataset.mode = mode;
+        el.innerHTML = `<div class="palette-icon">${MODE_INFO[mode].icon}</div><div class="palette-label">${MODE_INFO[mode].label}</div>`;
+    });
+    highlightPaletteMode(currentMode);
+}
+
+function highlightPaletteMode(mode) {
+    document.querySelectorAll(".palette-option").forEach(el => {
+        el.classList.toggle("palette-highlighted", el.dataset.mode === mode);
+    });
 }
 
 //Allows the panels to be draggable, prevents it from being dragged off the screen
@@ -255,8 +286,7 @@ function initPanel() {
     //Manual mode override dropdown, lets the user force Scroll/Action mode
     document.querySelectorAll(".mode-option").forEach(option => {
         option.addEventListener("click", () => {
-            const scrollPausedValue = option.dataset.mode === "action";
-            chrome.runtime.sendMessage({action: "setMode", isScrollPaused: scrollPausedValue});
+            chrome.runtime.sendMessage({action: "setMode", mode: option.dataset.mode});
         });
     });
 
@@ -301,6 +331,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "cameraStopped") {
         cameraIsActive = false;
         removePanel();
+    }
+
+    if (message.action === "openModePalette") {
+        const palette = document.getElementById("mode-palette");
+        if (palette) {
+            const order = ["scroll", "action", "nav"];
+            const i = order.indexOf(message.currentMode);
+            const leftMode = order[(i - 1 + 3) % 3];
+            const rightMode = order[(i + 1) % 3];
+            renderPalette(message.currentMode, leftMode, rightMode);
+            palette.style.display = "flex";
+        }
     }
 
     if (message.scrollAmount !== undefined) {
@@ -352,6 +394,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === "handFeedFrame") {
         const img = document.getElementById("hand-feed-img");
         if (img) img.src = message.image;
+    }
+
+    if (message.action === "openModePalette") {
+        const palette = document.getElementById("mode-palette");
+        if (palette) {
+            palette.style.display = "flex";
+            highlightPaletteMode(message.currentMode);
+        }
+    }
+
+    if (message.action === "highlightMode") {
+        highlightPaletteMode(message.mode);
+    }
+
+    if (message.action === "closeModePalette") {
+        const palette = document.getElementById("mode-palette");
+        if (palette) palette.style.display = "none";
     }
 });
 

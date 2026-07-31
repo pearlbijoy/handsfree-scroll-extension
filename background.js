@@ -4,15 +4,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (!tabs[0]) return;
             const tabId = tabs[0].id;
-            //Hide the panel/feed/guide first so they don't show up in the screenshot itself, capture the tab, then bring them back once the image is saved
             chrome.tabs.sendMessage(tabId, {action: "hidePanelForCapture"}, () => {
-                chrome.tabs.captureVisibleTab(null, {format: "png"}, (dataUrl) => {
-                    chrome.downloads.download({
-                        url: dataUrl,
-                        filename: "gesture-screenshot.png"
+                setTimeout(() => {
+                    chrome.tabs.captureVisibleTab(null, {format: "png"}, (dataUrl) => {
+                        chrome.downloads.download({
+                            url: dataUrl,
+                            filename: "gesture-screenshot.png"
+                        });
+                        chrome.tabs.sendMessage(tabId, {action: "showPanelAfterCapture"});
                     });
-                    chrome.tabs.sendMessage(tabId, {action: "showPanelAfterCapture"});
-                });
+                }, 100);
             });
         });
         return;

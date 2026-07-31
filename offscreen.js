@@ -7,9 +7,18 @@ let fingers;
 
 //for switching modes
 let openPalmHoldCount = 0;
-let isScrollPaused = false;
-let HOLD_FRAMES_REQUIRED = 8;
+let currentMode = "scroll"; // "scroll" | "action" | "nav"
+let HOLD_FRAMES_REQUIRED = 6;
 let scrollPauseToggleFired = false; 
+const MODE_ORDER = ["scroll", "action", "nav"];
+
+//mode palette state
+let isPaletteOpen = false;
+let selectedModeInPalette = null;
+let paletteFistHoldCount = 0;
+let PALETTE_FIST_HOLD_FRAMES = 4;
+let paletteFistToggleFired = false;
+let TILT_ANGLE_THRESHOLD = 12; // degrees, tune by testing
 
 //for scrolling up and down
 let wasIndexOnlyLastFrame = false;
@@ -34,7 +43,7 @@ let screenShotToggleFired = false;
 
 //Reload related
 let reloadHoldCount = 0;
-let RELOAD_HOLD_FRAMES = 6; 
+let RELOAD_HOLD_FRAMES = 8; 
 let reloadToggleFired = false;
 
 //Zoom related
@@ -77,8 +86,8 @@ chrome.runtime.onMessage.addListener((message) => {
         SCREENSHOT_HOLD_FRAMES = message.value;
     }
     if (message.action === "setMode") {
-        isScrollPaused = message.isScrollPaused;
-        console.log("Mode set from panel:", isScrollPaused ? "Action Mode" : "Scroll Mode");
+        currentMode = message.mode;
+        console.log("Mode set from panel:", currentMode);
     }
     if (message.action === "setFeedVisible") {
         isFeedVisible = message.value;
@@ -168,15 +177,35 @@ function getFingerState(hand) {
     };
 }
 
+function getNeighborMode(mode, direction) {
+    const currentIndex = MODE_ORDER.indexOf(mode);
+    const offset = direction === "right" ? 1 : -1;
+    const newIndex = (currentIndex + offset + MODE_ORDER.length) % MODE_ORDER.length;
+    return MODE_ORDER[newIndex];
+}
+
+function getPalmTiltAngle(hand) {
+    const wrist = hand[0];
+    const middleKnuckle = hand[9];
+    const dx = middleKnuckle.x - wrist.x;
+    const dy = middleKnuckle.y - wrist.y;
+    const radians = Math.atan2(dx, -dy);
+    return -(radians * (180 / Math.PI)); //flipped as the model does not mirror the actions on its own.
+}
+
 //defining the gestures
 //COMMON
 function isThumbsUpPose(fingers,hand) { //to ensure that it is an actual thumbs UP position and not thumb sideways position
     const thumbPointingUp =  hand[4].y < hand[2].y &&
                              hand[4].y < hand[1].y &&
                              hand[4].y < hand[0].y &&
-                             hand[3].y< hand[5].y &&
-                             hand[3].y <hand[9].y;
-    return thumbPointingUp && !fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky;
+                             hand[2].y< hand[9].y &&
+                             hand[3].y <hand[5].y;
+    const verticalDistance = Math.abs(hand[4].y - hand[2].y);
+    const horizontalDrift = Math.abs(hand[4].x - hand[2].x);
+    const isMostlyVertical = horizontalDrift < verticalDistance * 0.4
+
+    return thumbPointingUp && isMostlyVertical && !fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky;
 
 }
 
@@ -190,7 +219,7 @@ function isScreenShotPose(fingers) {
 }
 
 function isPauseVideoPose(fingers) {
-    return !fingers.index && !fingers.pinky && !fingers.middle && !fingers.ring;
+    return !fingers.thumb && !fingers.index && !fingers.pinky && !fingers.middle && !fingers.ring;
 }
 
 function isReloadPose(fingers){
@@ -228,15 +257,13 @@ function isFinishZoomOutPose(fingers, hand) {
         && !fingers.ring && !fingers.pinky;
 }
 
-
-
 //Updating the panel
 function sendStatusUpdate(handDetected, lastGestureText) {
     chrome.runtime.sendMessage({
         type: "statusUpdate",
         handDetected: handDetected,
         isPaused: isPaused,
-        isScrollPaused: isScrollPaused,
+        currentMode: currentMode,
         lastGesture: lastGestureText,
         detectionRate: currentDetectionRate
     });
@@ -259,6 +286,8 @@ function detectHands(){
         screenShotHoldCount = 0;
         thumbsUpHoldCount = 0;
         reloadHoldCount = 0;
+        paletteFistHoldCount = 0; 
+        paletteFistToggleFired = false;
         wasZoomInStart = false; 
         wasZoomOutStart = false;
         pauseToggleFired = false;
@@ -291,110 +320,148 @@ function detectHands(){
 
     //If tracking was not paused
     if(!isPaused){
-        //Toggle Mode (scroll/action)
+        //Open palm: opens mode palette
         const currentOpenPalm = isOpenPalmPose(fingers);
         if (currentOpenPalm) {
-            openPalmHoldCount++; //counting the number of frames the pose has been held for
+            openPalmHoldCount++;
             if (openPalmHoldCount >= HOLD_FRAMES_REQUIRED && !scrollPauseToggleFired) {
-                isScrollPaused = !isScrollPaused;
-                scrollPauseToggleFired = true; 
-                console.log("Scroll paused:", isScrollPaused);
+                isPaletteOpen = true;
+                selectedModeInPalette = currentMode;
+                scrollPauseToggleFired = true;
+                chrome.runtime.sendMessage({action: "openModePalette", currentMode});
+                console.log("Palette opened, current mode:", currentMode);
             }
         } 
         else {
             openPalmHoldCount = 0;
-            scrollPauseToggleFired = false; // reset once palm pose is released
+            scrollPauseToggleFired = false;
         }
 
-        //SCROLL MODE
-        if (!isScrollPaused) {
-            const currentIndexOnly = isIndexOnlyPose(fingers);
-            const currentIndexMiddle = isIndexMiddlePose(fingers);
+        //While palette is open: track tilt, confirm after a held beat
+        if (isPaletteOpen) {
+            const isFist = !fingers.thumb && !fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky;
 
-            // scroll down
-            if (currentIndexOnly && !wasIndexOnlyLastFrame) {
-                chrome.runtime.sendMessage({scrollAmount: FLICK_SCROLL_AMOUNT}); 
-                sendStatusUpdate(true, "Scrolled Down");
-            }
+            if (isFist) {
+                paletteFistHoldCount++;
+                if (paletteFistHoldCount >= PALETTE_FIST_HOLD_FRAMES && !paletteFistToggleFired) {
+                    currentMode = selectedModeInPalette;
+                    paletteFistToggleFired = true;
+                    isPaletteOpen = false;
+                    chrome.runtime.sendMessage({action: "closeModePalette"});
+                    chrome.runtime.sendMessage({action: "modeChanged", mode: currentMode});
+                    console.log("Mode confirmed:", currentMode);
+                }
+            } else {
+                paletteFistHoldCount = 0;
+                paletteFistToggleFired = false;
 
-            // scroll up
-            if (!currentIndexMiddle && wasIndexMiddleLastFrame) {
-                chrome.runtime.sendMessage({scrollAmount: -FLICK_SCROLL_AMOUNT}); 
-                sendStatusUpdate(true, "Scrolled Up");
+                const tiltAngle = getPalmTiltAngle(hand);
+                let candidateMode;
+                if (tiltAngle > TILT_ANGLE_THRESHOLD) candidateMode = getNeighborMode(currentMode, "right");
+                else if (tiltAngle < -TILT_ANGLE_THRESHOLD) candidateMode = getNeighborMode(currentMode, "left");
+                else candidateMode = currentMode;
+
+                if (candidateMode !== selectedModeInPalette) {
+                    selectedModeInPalette = candidateMode;
+                    chrome.runtime.sendMessage({action: "highlightMode", mode: candidateMode});
+                }
             }
-            wasIndexOnlyLastFrame = currentIndexOnly;
-            wasIndexMiddleLastFrame = currentIndexMiddle;
         }
+        
+        if (!isPaletteOpen) {
+            //SCROLL MODE
+            if (currentMode === "scroll") {
+                const currentIndexOnly = isIndexOnlyPose(fingers);
+                const currentIndexMiddle = isIndexMiddlePose(fingers);
 
-        //ACTION MODE
-        else{ 
-            //Toggle video
-            const currentPause = isPauseVideoPose(fingers);
-            if (currentPause) {
-                pauseHoldCount++; //counting how many frames the pose was held for
-                if (pauseHoldCount >= PAUSE_HOLD_FRAMES && !pauseToggleFired) {
-                    chrome.runtime.sendMessage({action: "toggleVideo"});
-                    sendStatusUpdate(true, "Toggled Video");
-                    pauseToggleFired = true;
-                    console.log("Video toggled");
+                // scroll down
+                if (currentIndexOnly && !wasIndexOnlyLastFrame) {
+                    chrome.runtime.sendMessage({scrollAmount: FLICK_SCROLL_AMOUNT}); 
+                    sendStatusUpdate(true, "Scrolled Down");
                 }
-            } 
-            else {
-                pauseHoldCount = 0;
-                pauseToggleFired = false;
-            }
 
-            //Screenshot
-            const currentFist = isScreenShotPose(fingers);
-            if (currentFist) {
-                screenShotHoldCount++;
-                if (screenShotHoldCount >= SCREENSHOT_HOLD_FRAMES && !screenShotToggleFired) {
-                    chrome.runtime.sendMessage({action: "takeScreenshot"});
-                    sendStatusUpdate(true, "ScreenShot Taken");
-                    screenShotToggleFired = true;
-                    console.log("Screenshot taken");
+                // scroll up
+                if (!currentIndexMiddle && wasIndexMiddleLastFrame) {
+                    chrome.runtime.sendMessage({scrollAmount: -FLICK_SCROLL_AMOUNT}); 
+                    sendStatusUpdate(true, "Scrolled Up");
                 }
-            } 
-            else {
-                screenShotHoldCount = 0;
-                screenShotToggleFired = false;
+                wasIndexOnlyLastFrame = currentIndexOnly;
+                wasIndexMiddleLastFrame = currentIndexMiddle;
             }
 
-            //Reload
-            const currentReload = isReloadPose(fingers);
-            if (currentReload) {
-                reloadHoldCount++;
-                if (reloadHoldCount >= RELOAD_HOLD_FRAMES && !reloadToggleFired) {
-                    chrome.runtime.sendMessage({action: "reload"});
-                    sendStatusUpdate(true, "Reloaded Page");
-                    reloadToggleFired = true;
-                    console.log("Reloaded Page");
+            //ACTION MODE
+            else if(currentMode === "action"){ 
+                //Toggle video
+                const currentPause = isPauseVideoPose(fingers);
+                if (currentPause) {
+                    pauseHoldCount++; //counting how many frames the pose was held for
+                    if (pauseHoldCount >= PAUSE_HOLD_FRAMES && !pauseToggleFired) {
+                        chrome.runtime.sendMessage({action: "toggleVideo"});
+                        sendStatusUpdate(true, "Toggled Video");
+                        pauseToggleFired = true;
+                        console.log("Video toggled");
+                    }
+                } 
+                else {
+                    pauseHoldCount = 0;
+                    pauseToggleFired = false;
                 }
-            } 
-            else {
-                reloadHoldCount = 0;
-                reloadToggleFired = false;
+
+                //Screenshot
+                const currentFist = isScreenShotPose(fingers);
+                if (currentFist) {
+                    screenShotHoldCount++;
+                    if (screenShotHoldCount >= SCREENSHOT_HOLD_FRAMES && !screenShotToggleFired) {
+                        chrome.runtime.sendMessage({action: "takeScreenshot"});
+                        sendStatusUpdate(true, "ScreenShot Taken");
+                        screenShotToggleFired = true;
+                        console.log("Screenshot taken");
+                    }
+                } 
+                else {
+                    screenShotHoldCount = 0;
+                    screenShotToggleFired = false;
+                }
+
+                //Reload
+                const currentReload = isReloadPose(fingers);
+                if (currentReload) {
+                    reloadHoldCount++;
+                    if (reloadHoldCount >= RELOAD_HOLD_FRAMES && !reloadToggleFired) {
+                        chrome.runtime.sendMessage({action: "reload"});
+                        sendStatusUpdate(true, "Reloaded Page");
+                        reloadToggleFired = true;
+                        console.log("Reloaded Page");
+                    }
+                } 
+                else {
+                    reloadHoldCount = 0;
+                    reloadToggleFired = false;
+                }
+
+                const startZoomIn = isStartZoomInPose(fingers, hand);
+                const finishZoomIn = isFinishZoomInPose(fingers);
+
+                if (finishZoomIn && wasZoomInStart) {
+                    chrome.runtime.sendMessage({action: "zoomIn"});
+                }
+                wasZoomInStart = startZoomIn || (wasZoomInStart && !finishZoomIn);
+
+                const startZoomOut = isStartZoomOutPose(fingers);
+                const finishZoomOut = isFinishZoomOutPose(fingers, hand);
+
+                if (finishZoomOut && wasZoomOutStart) {
+                    chrome.runtime.sendMessage({action: "zoomOut"});
+                    sendStatusUpdate(true, "Zoomed Out");
+                }
+                wasZoomOutStart = startZoomOut || (wasZoomOutStart && !finishZoomOut);
+
             }
-
-            const startZoomIn = isStartZoomInPose(fingers, hand);
-            const finishZoomIn = isFinishZoomInPose(fingers);
-
-            if (finishZoomIn && wasZoomInStart) {
-                chrome.runtime.sendMessage({action: "zoomIn"});
+            //NAV MODE
+            else if (currentMode === "nav") {
+                // rock pose / tab-switching goes here later
             }
-            wasZoomInStart = startZoomIn || (wasZoomInStart && !finishZoomIn);
-
-            const startZoomOut = isStartZoomOutPose(fingers);
-            const finishZoomOut = isFinishZoomOutPose(fingers, hand);
-
-            if (finishZoomOut && wasZoomOutStart) {
-                chrome.runtime.sendMessage({action: "zoomOut"});
-                sendStatusUpdate(true, "Zoomed Out");
-            }
-            wasZoomOutStart = startZoomOut || (wasZoomOutStart && !finishZoomOut);
-
-        }
-           
+        }   
     }
     sendStatusUpdate(true, null);    
     setTimeout(detectHands, 100); //LOOPING THIS FUNCTION CONTINUOSLY

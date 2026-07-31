@@ -3,7 +3,8 @@
   "name": "HoverNav",
   "version": "1.0",
   "description": "Webcam-based hand gesture extension for hands-free scrolling.",
-  "permissions":["offscreen","storage","tabs","downloads","activeTab"],
+  "permissions":["offscreen","storage","tabs","downloads"],
+  "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "popup.html"    
   },

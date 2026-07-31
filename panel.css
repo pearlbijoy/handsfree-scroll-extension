@@ -63,6 +63,7 @@
 }
 .status-dot.orange { background: #f97316; }
 .status-dot.red { background: #ef4444; }
+.status-dot.blue, .status-dot-mini.blue {background-color: #4a90e2;}
 
 .status-title { font-weight: 600; font-size: 12px; color: #f1f5f9; }
 .status-sub { font-size: 11px; color: #94a3b8; }
@@ -202,6 +203,68 @@
 .status-dot-mini.orange { background: #ffcb69; }
 .status-dot-mini.red { background: #ef4444; }
 
+/*----MODE PALLETE----*/
+.mode-palette {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    background: rgba(20, 20, 25, 0.85);
+    backdrop-filter: blur(12px);
+    padding: 24px;
+    border-radius: 20px;
+    z-index: 999998;
+}
+
+.palette-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 16px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid transparent;
+    opacity: 0.5;
+    transform: scale(0.9);
+    transition: all 0.2s ease;
+    min-width: 90px;
+}
+
+.palette-option.palette-highlighted {
+    opacity: 1;
+    transform: scale(1.1);
+    border-color: #7c9cff;
+    background: rgba(124, 156, 255, 0.15);
+}
+
+.palette-center {
+    padding-bottom: 32px;
+}
+
+.palette-icon {
+    font-size: 28px;
+}
+
+.palette-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #eaeaea;
+    white-space: nowrap;
+}
+
+.palette-hint {
+    position: absolute;
+    bottom: -36px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: #aaa;
+    white-space: nowrap;
+}
 
 /*---- GESTURE GUIDE OVERLAY---- */
 .guide-overlay {
