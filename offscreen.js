@@ -249,7 +249,6 @@ function isIndexMiddlePose(fingers) {
 }
 
 function isStartZoomInPose(fingers, hand) {
-    console.log(getDistance(hand,4,8))
     return getDistance(hand, 4, 8) < PINCH_THRESHOLD
         && !fingers.middle && !fingers.ring && !fingers.pinky;
 }

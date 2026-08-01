@@ -436,11 +436,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message.scrollAmount !== undefined) {
-        window.scrollBy({
-            top: message.scrollAmount,
-            left: 0,
-            behavior: "smooth"
-        });
+        const hostname = window.location.hostname;
+        const pathname = window.location.pathname;
+
+        const isYouTubeShorts = hostname.includes("youtube.com") && pathname.startsWith("/shorts/");
+        const isInstagramReels = hostname.includes("instagram.com") && pathname.startsWith("/reels/");
+
+        if (isInstagramReels) {
+            const label = message.scrollAmount > 0 ? "Navigate to next Reel" : "Navigate to previous Reel";
+            const btn = document.querySelector(`[aria-label="${label}"]`);
+            if (btn) btn.click();
+        } 
+        else if (isYouTubeShorts) {
+            const key = message.scrollAmount > 0 ? "ArrowDown" : "ArrowUp";
+            document.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true }));
+        } 
+        else {
+            window.scrollBy({
+                top: message.scrollAmount,
+                left: 0,
+                behavior: "smooth"
+            });
+        }
     }
 
     if (message.action === "hidePanelForCapture") {
