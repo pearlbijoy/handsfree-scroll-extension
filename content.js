@@ -45,6 +45,8 @@ function injectPanel(startCollapsed = true) {
 function removePanel() {
     const panel = document.getElementById("gesture-panel");
     const collapsed = document.getElementById("gesture-collapsed");
+    const palette = document.getElementById("mode-palette");
+    if (palette) palette.style.display = "none";
     if (panel) panel.remove();
     if (collapsed) collapsed.remove();
     panelInjected = false;
@@ -77,15 +79,21 @@ function updatePanelStatus(message) {
         modeColorClass = "";
         modeText = "Action Mode";
     } 
+    else if (message.isTabSwitchSubState) {
+        modeColorClass = "pink";
+        modeText = "Tab Switching";
+    }
+
     else if (message.currentMode === "nav") {
         modeColorClass = "blue";
         modeText = "Nav Mode";
     }
+    
     else {
         modeColorClass = "orange";
         modeText = "Scroll Mode";
     }
-
+    
     modeValue.textContent = modeText;
     dotCollapsed.className = "status-dot-mini" + (modeColorClass ? " " + modeColorClass : "");
     
@@ -112,29 +120,53 @@ function updatePanelStatus(message) {
 
 //for the switch mode pallete
 const MODE_INFO = {
-    scroll: { icon: "☝️", label: "Scroll Mode" },
-    action: { icon: "✋", label: "Action Mode" },
-    nav: { icon: "🧭", label: "Nav Mode" }
+    scroll: {
+        label: "Scroll Mode",
+        colorVar: "#22c55e",
+        icon: `<svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg"><g><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M55.4792,47.6473c0,9.0883-7.3675,16.4558-16.4558,16.4558s-16.4558-7.3675-16.4558-16.4558"/><line x1="55.4792" x2="55.4792" y1="46.7738" y2="34.7738" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M48.4869,34.4804c0.081-1.9313,1.7123-3.4313,3.6436-3.3502c1.9313,0.081,3.4312,1.7123,3.3502,3.6436"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M41.49,34.2475c0.081-1.9313,1.7123-3.4312,3.6436-3.3502s3.4313,1.7123,3.3502,3.6436"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M41.494,34.1136c0.155-1.9268,1.8426-3.3631,3.7694-3.2081s3.3631,1.8426,3.2081,3.7694"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M34.4524,33.7692c0.1237-1.929,1.7878-3.3925,3.7168-3.2688s3.3925,1.7878,3.2688,3.7168"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M17.4986,35.9928c-1.3429-1.3904-1.3044-3.6061,0.086-4.949c1.3904-1.3429,3.6061-1.3044,4.949,0.086"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M27.4524,11.3969c0-1.933,1.567-3.5,3.5-3.5s3.5,1.567,3.5,3.5"/><line x1="34.4524" x2="34.4524" y1="33.7321" y2="11.3969" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/><line x1="27.4524" x2="27.4524" y1="11.3969" y2="39.1875" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/><line x1="24.4916" x2="22.5336" y1="33.3435" y2="31.1298" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M19.2663,38.3125c1.9526,2.1439,3.3734,5.1677,3.3013,9.5218"/><line x1="17.4986" x2="19.32" y1="35.9928" y2="38.373" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/></g></svg>`
+      
+    },
+    action: {
+        label: "Action Mode",
+        colorVar: "#4a90e2",
+        icon: `<svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg"><g><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M30.6145,13.7375 c0.284-1.9293-1.0499-3.7236-2.9792-4.0075s-3.7236,1.0498-4.0075,2.9792c-0.0455,0.3093-0.0498,0.6232-0.0126,0.9336 L23.358,32.641l0.0048,0.9513l0.1928-9.6253c0.284-1.9293-1.0499-3.7236-2.9792-4.0075s-3.7236,1.0498-4.0075,2.9792 c-0.0455,0.3093-0.0498,0.6232-0.0126,0.9336l-0.1759,12.9988l0.0526,10.0853c0.4248,8.3102,7.7518,13.6293,16.06,13.2046 c4.7918-0.2654,9.32-2.2781,12.7278-5.6572c2.9178-3.0904,10.0855-11.5349,10.0855-11.5349 c1.4629-2.1582,0.3282-5.4939-0.8007-4.6726l-9.8756,4.6509l-0.0389-5.3996l0.0389,5.3996l-0.0389-5.3996l0.0395-21.8505 c0.284-1.9293-1.0499-3.7236-2.9792-4.0075s-3.7236,1.0498-4.0075,2.9792c-0.0455,0.3093-0.0498,0.6232-0.0126,0.9336 l-0.0947,6.9994l-0.1861,10.6365l0.3671-22.1928c0.284-1.9293-1.0499-3.7236-2.9792-4.0075 c-1.9293-0.284-3.7236,1.0498-4.0075,2.9792c-0.0455,0.3093-0.0498,0.6232-0.0126,0.9336l-0.1758,20.4538"/></g></svg>`
+    },
+    nav: {
+        label: "Nav Mode",
+        colorVar: "#a78bfa",
+        icon: `<svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg"><g><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M55.4792,47.6473c0,9.0883-7.3675,16.4558-16.4558,16.4558s-16.4558-7.3675-16.4558-16.4558"/><line x1="55.4792" x2="55.4792" y1="46.7738" y2="34.7738" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M48.4869,34.4804c0.081-1.9313,1.7123-3.4313,3.6436-3.3502c1.9313,0.081,3.4312,1.7123,3.3502,3.6436"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M41.49,34.2475c0.081-1.9313,1.7123-3.4312,3.6436-3.3502s3.4313,1.7123,3.3502,3.6436"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M41.494,34.1136c0.155-1.9268,1.8426-3.3631,3.7694-3.2081s3.3631,1.8426,3.2081,3.7694"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M34.4524,33.7692c0.1237-1.929,1.7878-3.3925,3.7168-3.2688s3.3925,1.7878,3.2688,3.7168"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M17.4986,35.9928c-1.3429-1.3904-1.3044-3.6061,0.086-4.949c1.3904-1.3429,3.6061-1.3044,4.949,0.086"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M27.4524,11.3969c0-1.933,1.567-3.5,3.5-3.5s3.5,1.567,3.5,3.5"/><line x1="34.4524" x2="34.4524" y1="33.7321" y2="11.3969" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/><line x1="27.4524" x2="27.4524" y1="11.3969" y2="39.1875" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/><line x1="24.4916" x2="22.5336" y1="33.3435" y2="31.1298" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M19.2663,38.3125c1.9526,2.1439,3.3734,5.1677,3.3013,9.5218"/><line x1="17.4986" x2="19.32" y1="35.9928" y2="38.373" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/></g></svg>`
+    }
 };
 
 function renderPalette(currentMode, leftMode, rightMode) {
-    const slots = [
-        { id: "palette-left", mode: leftMode },
-        { id: "palette-center", mode: currentMode },
-        { id: "palette-right", mode: rightMode }
-    ];
-    slots.forEach(({ id, mode }) => {
-        const el = document.getElementById(id);
-        el.dataset.mode = mode;
-        el.innerHTML = `<div class="palette-icon">${MODE_INFO[mode].icon}</div><div class="palette-label">${MODE_INFO[mode].label}</div>`;
+    const slotModes = { left: leftMode, center: currentMode, right: rightMode };
+    window._fanSlotModes = slotModes;
+
+    Object.entries(slotModes).forEach(([slotId, modeId]) => {
+        const info = MODE_INFO[modeId];
+        if (!info) return;
+        const iconWrap = document.getElementById("icon-" + slotId);
+        const contentEl = document.getElementById("palette-" + slotId);
+        if (iconWrap) {
+            // keep the badge (direction arrows) if present, only swap the first svg
+            const badge = iconWrap.querySelector(".badge");
+            iconWrap.innerHTML = info.icon;
+            if (badge) iconWrap.appendChild(badge);
+            iconWrap.style.color = info.colorVar;
+        }
+        if (contentEl) {
+            const labelEl = contentEl.querySelector(".label");
+            if (labelEl) labelEl.textContent = info.label;
+        }
     });
-    highlightPaletteMode(currentMode);
+
+    highlightPaletteMode(currentMode); // center is always the active mode after a rotation
 }
 
 function highlightPaletteMode(mode) {
-    document.querySelectorAll(".palette-option").forEach(el => {
-        el.classList.toggle("palette-highlighted", el.dataset.mode === mode);
-    });
+    const slots = window._fanSlotModes || { left: "scroll", center: "action", right: "nav" };
+    const slotId = Object.keys(slots).find(key => slots[key] === mode) || "center";
+    if (window.setFanHighlight) window.setFanHighlight(slotId);
 }
 
 //Allows the panels to be draggable, prevents it from being dragged off the screen
@@ -169,6 +201,73 @@ function makeDraggable(el, handle,onClick) {
         isDragging = false;
     });
 }
+
+function buildFanPalette() {
+    const cx = 240, cy = 320;
+    const rInner = 46, rOuter = 230;
+
+    const wedgeDefs = [
+        { id: "left",   startAngle: -75, endAngle: -25 },
+        { id: "center", startAngle: -22, endAngle: 22  },
+        { id: "right",  startAngle: 25,  endAngle: 75  },
+    ];
+
+    function polar(cx, cy, r, angleDeg) {
+        const rad = (angleDeg - 90) * Math.PI / 180;
+        return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+    }
+
+    function arcPath(cx, cy, rInner, rOuter, startAngle, endAngle) {
+        const p1 = polar(cx, cy, rOuter, startAngle);
+        const p2 = polar(cx, cy, rOuter, endAngle);
+        const p3 = polar(cx, cy, rInner, endAngle);
+        const p4 = polar(cx, cy, rInner, startAngle);
+        const largeArc = (endAngle - startAngle) > 180 ? 1 : 0;
+        return `M ${p1.x} ${p1.y}
+                A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${p2.x} ${p2.y}
+                L ${p3.x} ${p3.y}
+                A ${rInner} ${rInner} 0 ${largeArc} 0 ${p4.x} ${p4.y}
+                Z`;
+    }
+
+    const g = document.getElementById("fan-wedges");
+    if (!g) return;
+    g.innerHTML = ""; // clear in case this ever runs twice
+
+    wedgeDefs.forEach(w => {
+        const d = arcPath(cx, cy, rInner, rOuter, w.startAngle, w.endAngle);
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", d);
+        path.setAttribute("class", "wedge-path " + w.id + (w.id === "center" ? " highlighted" : ""));
+        path.setAttribute("id", "path-" + w.id);
+        g.appendChild(path);
+
+        const midAngle = (w.startAngle + w.endAngle) / 2;
+        const midR = (rInner + rOuter) / 2 + 20;
+        const pos = polar(cx, cy, midR, midAngle);
+        const contentEl = document.getElementById("palette-" + w.id);
+        if (contentEl) {
+            contentEl.style.left = pos.x + "px";
+            contentEl.style.top = (pos.y + 10) + "px";
+            contentEl.style.transform = "translate(-50%, -50%)" + (w.id === "center" ? " scale(1.08)" : "");
+        }
+    });
+}
+
+// Highlights the given wedge ("left" | "center" | "right") in the fanned palette
+window.setFanHighlight = function (modeId) {
+    ["left", "center", "right"].forEach(id => {
+        const path = document.getElementById("path-" + id);
+        const content = document.getElementById("palette-" + id);
+        if (path) path.classList.toggle("highlighted", id === modeId);
+        if (content) {
+            content.classList.toggle("active", id === modeId);
+            content.classList.toggle("dim", id !== modeId);
+            content.style.transform = "translate(-50%, -50%)" + (id === modeId ? " scale(1.08)" : "");
+        }
+    });
+};
+
 
 function ensurePanelExists() {
     if (cameraIsActive && !document.getElementById("gesture-panel")&& !reinjectInProgress) {
@@ -219,6 +318,8 @@ function initPanel() {
     const SENSITIVITY_DEFAULT = 400;
     const HOLD_DEFAULT = 6;
 
+    buildFanPalette();
+
     //Collapsing and expanding panel related:
    collapsed.addEventListener("click", () => {
         panel.style.visibility = "hidden";
@@ -250,23 +351,12 @@ function initPanel() {
         chrome.runtime.sendMessage({action: "setSensitivity", value: val});
     });
 
-    document.getElementById("hold-slider").addEventListener("input", (e) => {
-        const val = Number(e.target.value);
-        document.getElementById("hold-val").textContent = val;
-        chrome.runtime.sendMessage({action: "setHoldFrames", value: val});
-    });
 
      //Reset buttons:restore a slider to its default and tell offscreen.js
     document.getElementById("sensitivity-reset").addEventListener("click", () => {
         document.getElementById("sensitivity-slider").value = SENSITIVITY_DEFAULT;
         document.getElementById("sensitivity-val").textContent = SENSITIVITY_DEFAULT;
         chrome.runtime.sendMessage({action: "setSensitivity", value: SENSITIVITY_DEFAULT});
-    });
-
-    document.getElementById("hold-reset").addEventListener("click", () => {
-        document.getElementById("hold-slider").value = HOLD_DEFAULT;
-        document.getElementById("hold-val").textContent = HOLD_DEFAULT;
-        chrome.runtime.sendMessage({action: "setHoldFrames", value: HOLD_DEFAULT});
     });
 
     //Guide panel related:
@@ -394,14 +484,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === "handFeedFrame") {
         const img = document.getElementById("hand-feed-img");
         if (img) img.src = message.image;
-    }
-
-    if (message.action === "openModePalette") {
-        const palette = document.getElementById("mode-palette");
-        if (palette) {
-            palette.style.display = "flex";
-            highlightPaletteMode(message.currentMode);
-        }
     }
 
     if (message.action === "highlightMode") {

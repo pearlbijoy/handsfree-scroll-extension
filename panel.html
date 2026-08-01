@@ -71,17 +71,10 @@
   </div>
 
   <div class="slider-row">
-    <div class="slider-label"><span>Scroll Sensitivity</span><span id="sensitivity-val">400</span></div>
+    <div class="slider-label"><span>Scroll Amount</span><span id="sensitivity-val">400</span></div>
     <input type="range" id="sensitivity-slider" min="200" max="1000" value="400">
     <div class="slider-range"><span>Low</span><span>High</span></div>
     <button id="sensitivity-reset" class="reset-btn">Reset</button>
-  </div>
-
-  <div class="slider-row">
-    <div class="slider-label"><span>Hold Duration</span><span id="hold-val">6</span></div>
-    <input type="range" id="hold-slider" min="4" max="9" value="6">
-    <div class="slider-range"><span>Shorter</span><span>Longer</span></div>
-    <button id="hold-reset" class="reset-btn">Reset</button>
   </div>
 
   <div class="button-row">
@@ -104,10 +97,47 @@
 
 <!--Mode selection palette-->
 <div id="mode-palette" class="mode-palette" style="display:none;">
-    <div class="palette-option" id="palette-left"></div>
-    <div class="palette-option palette-center" id="palette-center"></div>
-    <div class="palette-option" id="palette-right"></div>
-    <div class="palette-hint">Tilt to select. Make a fist to confirm.</div>
+  <div class="fan-tilt-row">
+    <span>⟵ Tilt Left</span>
+    <span>Tilt Right ⟶</span>
+  </div>
+
+  <svg class="fan-svg" viewBox="0 0 480 320" preserveAspectRatio="xMidYMax meet">
+    <g id="fan-wedges"></g>
+  </svg>
+
+  <div class="wedge-content dim" id="palette-left">
+    <div class="icon-wrap" id="icon-left">
+      <svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg"><g><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M55.4792,47.6473c0,9.0883-7.3675,16.4558-16.4558,16.4558s-16.4558-7.3675-16.4558-16.4558"/><line x1="55.4792" x2="55.4792" y1="46.7738" y2="34.7738" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M48.4869,34.4804c0.081-1.9313,1.7123-3.4313,3.6436-3.3502c1.9313,0.081,3.4312,1.7123,3.3502,3.6436"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M41.49,34.2475c0.081-1.9313,1.7123-3.4312,3.6436-3.3502s3.4313,1.7123,3.3502,3.6436"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M41.494,34.1136c0.155-1.9268,1.8426-3.3631,3.7694-3.2081s3.3631,1.8426,3.2081,3.7694"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M34.4524,33.7692c0.1237-1.929,1.7878-3.3925,3.7168-3.2688s3.3925,1.7878,3.2688,3.7168"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M17.4986,35.9928c-1.3429-1.3904-1.3044-3.6061,0.086-4.949c1.3904-1.3429,3.6061-1.3044,4.949,0.086"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M27.4524,11.3969c0-1.933,1.567-3.5,3.5-3.5s3.5,1.567,3.5,3.5"/><line x1="34.4524" x2="34.4524" y1="33.7321" y2="11.3969" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/><line x1="27.4524" x2="27.4524" y1="11.3969" y2="39.1875" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/><line x1="24.4916" x2="22.5336" y1="33.3435" y2="31.1298" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M19.2663,38.3125c1.9526,2.1439,3.3734,5.1677,3.3013,9.5218"/><line x1="17.4986" x2="19.32" y1="35.9928" y2="38.373" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/></g></svg>
+      <div class="badge">
+        <svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg"><g><polygon fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="51.7651,50.2627 47.7305,46.5533 39.062,55.7613 39.062,16.2377 47.7305,25.4453 51.7651,21.7363 36.0015,4.9995 20.2349,21.7363 24.2681,25.4453 32.9331,16.2445 32.9331,55.7546 24.2681,46.5533 20.2349,50.2627 36.0015,66.9995"/></g></svg>
+      </div>
+    </div>
+    <div class="label">Scroll Mode</div>
+  </div>
+
+  <div class="wedge-content active" id="palette-center">
+    <div class="icon-wrap" id="icon-center">
+      <svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg"><g><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M30.6145,13.7375 c0.284-1.9293-1.0499-3.7236-2.9792-4.0075s-3.7236,1.0498-4.0075,2.9792c-0.0455,0.3093-0.0498,0.6232-0.0126,0.9336 L23.358,32.641l0.0048,0.9513l0.1928-9.6253c0.284-1.9293-1.0499-3.7236-2.9792-4.0075s-3.7236,1.0498-4.0075,2.9792 c-0.0455,0.3093-0.0498,0.6232-0.0126,0.9336l-0.1759,12.9988l0.0526,10.0853c0.4248,8.3102,7.7518,13.6293,16.06,13.2046 c4.7918-0.2654,9.32-2.2781,12.7278-5.6572c2.9178-3.0904,10.0855-11.5349,10.0855-11.5349 c1.4629-2.1582,0.3282-5.4939-0.8007-4.6726l-9.8756,4.6509l-0.0389-5.3996l0.0389,5.3996l-0.0389-5.3996l0.0395-21.8505 c0.284-1.9293-1.0499-3.7236-2.9792-4.0075s-3.7236,1.0498-4.0075,2.9792c-0.0455,0.3093-0.0498,0.6232-0.0126,0.9336 l-0.0947,6.9994l-0.1861,10.6365l0.3671-22.1928c0.284-1.9293-1.0499-3.7236-2.9792-4.0075 c-1.9293-0.284-3.7236,1.0498-4.0075,2.9792c-0.0455,0.3093-0.0498,0.6232-0.0126,0.9336l-0.1758,20.4538"/></g></svg>
+    </div>
+    <div class="label">Action Mode</div>
+  </div>
+
+  <div class="wedge-content dim" id="palette-right">
+    <div class="icon-wrap" id="icon-right">
+      <svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg"><g><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M55.4792,47.6473c0,9.0883-7.3675,16.4558-16.4558,16.4558s-16.4558-7.3675-16.4558-16.4558"/><line x1="55.4792" x2="55.4792" y1="46.7738" y2="34.7738" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M48.4869,34.4804c0.081-1.9313,1.7123-3.4313,3.6436-3.3502c1.9313,0.081,3.4312,1.7123,3.3502,3.6436"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M41.49,34.2475c0.081-1.9313,1.7123-3.4312,3.6436-3.3502s3.4313,1.7123,3.3502,3.6436"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M41.494,34.1136c0.155-1.9268,1.8426-3.3631,3.7694-3.2081s3.3631,1.8426,3.2081,3.7694"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M34.4524,33.7692c0.1237-1.929,1.7878-3.3925,3.7168-3.2688s3.3925,1.7878,3.2688,3.7168"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M17.4986,35.9928c-1.3429-1.3904-1.3044-3.6061,0.086-4.949c1.3904-1.3429,3.6061-1.3044,4.949,0.086"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M27.4524,11.3969c0-1.933,1.567-3.5,3.5-3.5s3.5,1.567,3.5,3.5"/><line x1="34.4524" x2="34.4524" y1="33.7321" y2="11.3969" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/><line x1="27.4524" x2="27.4524" y1="11.3969" y2="39.1875" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/><line x1="24.4916" x2="22.5336" y1="33.3435" y2="31.1298" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M19.2663,38.3125c1.9526,2.1439,3.3734,5.1677,3.3013,9.5218"/><line x1="17.4986" x2="19.32" y1="35.9928" y2="38.373" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/></g></svg>
+      <div class="badge">
+        <svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg"><g><polygon fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="50.2632,20.2344 46.5538,24.269 55.7618,32.9375 16.2382,32.9375 25.4458,24.269 21.7368,20.2344 5,35.998 21.7368,51.7646 25.4458,47.7314 16.2449,39.0664 55.7551,39.0664 46.5538,47.7314 50.2632,51.7646 67,35.998"/></g></svg>
+      </div>
+    </div>
+    <div class="label">Nav Mode</div>
+  </div>
+
+  <div class="hand-hub" id="fan-hub-icon">
+    <svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg"><g><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M30.6145,13.7375 c0.284-1.9293-1.0499-3.7236-2.9792-4.0075s-3.7236,1.0498-4.0075,2.9792c-0.0455,0.3093-0.0498,0.6232-0.0126,0.9336 L23.358,32.641l0.0048,0.9513l0.1928-9.6253c0.284-1.9293-1.0499-3.7236-2.9792-4.0075s-3.7236,1.0498-4.0075,2.9792 c-0.0455,0.3093-0.0498,0.6232-0.0126,0.9336l-0.1759,12.9988l0.0526,10.0853c0.4248,8.3102,7.7518,13.6293,16.06,13.2046 c4.7918-0.2654,9.32-2.2781,12.7278-5.6572c2.9178-3.0904,10.0855-11.5349,10.0855-11.5349 c1.4629-2.1582,0.3282-5.4939-0.8007-4.6726l-9.8756,4.6509l-0.0389-5.3996l0.0389,5.3996l-0.0389-5.3996l0.0395-21.8505 c0.284-1.9293-1.0499-3.7236-2.9792-4.0075s-3.7236,1.0498-4.0075,2.9792c-0.0455,0.3093-0.0498,0.6232-0.0126,0.9336 l-0.0947,6.9994l-0.1861,10.6365l0.3671-22.1928c0.284-1.9293-1.0499-3.7236-2.9792-4.0075 c-1.9293-0.284-3.7236,1.0498-4.0075,2.9792c-0.0455,0.3093-0.0498,0.6232-0.0126,0.9336l-0.1758,20.4538"/></g></svg>
+  </div>
+
+  <div class="fan-hint">Raise your open palm to switch modes. Tilt left or right to select.</div>
 </div>
 
 <!--The video panel-->

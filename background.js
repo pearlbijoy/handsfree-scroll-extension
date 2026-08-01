@@ -21,6 +21,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     if(message.action=== "reload"){
         chrome.tabs.reload();
+        return;
     }
 
     if (message.action === "zoomIn" || message.action === "zoomOut") {
@@ -34,6 +35,34 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 chrome.tabs.setZoom(tabId, newZoom);
             });
         });
+        return;
+    }
+    if (message.action === "nextTab" || message.action === "prevTab") {
+        chrome.tabs.query({currentWindow: true}, (tabs) => {
+            tabs.sort((a, b) => a.index - b.index); // ensure correct left-to-right order
+            const activeIndex = tabs.findIndex(t => t.active);
+            if (activeIndex === -1) return;
+
+            const newIndex = message.action === "nextTab"
+                ? (activeIndex + 1) % tabs.length
+                : (activeIndex - 1 + tabs.length) % tabs.length;
+
+            chrome.tabs.update(tabs[newIndex].id, {active: true});
+        });
+        return;
+    }
+
+    if (message.action === "goBack") {
+        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+            if (tabs[0]) chrome.tabs.goBack(tabs[0].id);
+        });
+        return;
+    }
+    if (message.action === "goForward") {
+        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+            if (tabs[0]) chrome.tabs.goForward(tabs[0].id);
+        });
+        return;
     }
 
     //End button when clicked should shut the camera and detection and remove the panel from every tab
@@ -59,7 +88,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.tabs.query(
         { active: true, currentWindow: true }, (tabs) => {
             if (tabs[0]) {
-                chrome.tabs.sendMessage(tabs[0].id, message);
+                chrome.tabs.sendMessage(tabs[0].id, message).catch(()=>{});
             }
         }
     );

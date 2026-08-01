@@ -20,6 +20,19 @@ let PALETTE_FIST_HOLD_FRAMES = 4;
 let paletteFistToggleFired = false;
 let TILT_ANGLE_THRESHOLD = 12; // degrees, tune by testing
 
+//Nav Mode: tab switching sub-state
+let isTabSwitchSubState = false;
+let lastTabDirection = null; // "next" | "prev" | null
+let rockPoseHoldCount = 0;
+let ROCK_POSE_HOLD_FRAMES = 5;
+let rockPoseToggleFired = false;
+let hasReturnedToCenter = true;
+let TAB_TILT_THRESHOLD = 7; // degrees, tune by testing
+
+//Back/forward via hand swipe
+let wasGunCenterLastFrame = false;
+
+
 //for scrolling up and down
 let wasIndexOnlyLastFrame = false;
 let wasIndexMiddleLastFrame = false;
@@ -257,6 +270,35 @@ function isFinishZoomOutPose(fingers, hand) {
         && !fingers.ring && !fingers.pinky;
 }
 
+//NAV MODE
+function isRockPose(fingers) {
+    return !fingers.thumb && fingers.index && !fingers.middle && !fingers.ring && fingers.pinky;
+}
+
+function isRockPoseThumbOut(fingers) {
+    return fingers.thumb && fingers.index && !fingers.middle && !fingers.ring && fingers.pinky;
+}
+
+function getIndexTiltAngle(hand) {
+    const knuckle = hand[5];
+    const tip = hand[8];
+    const dx = tip.x - knuckle.x;
+    const dy = tip.y - knuckle.y;
+    const radians = Math.atan2(dx, -dy);
+    return -(radians * (180 / Math.PI)); // flipped to match user's own left/right, same as getPalmTiltAngle
+}
+
+function isFingerGunPose(fingers) {
+    return fingers.thumb && fingers.index && fingers.middle && !fingers.ring && !fingers.pinky;
+}
+
+function classifyGunDirection(hand) {
+    const angle = getIndexTiltAngle(hand); // reuse existing function
+    if (angle > 10) return "right";
+    if (angle < -10) return "left";
+    return "center";
+}
+
 //Updating the panel
 function sendStatusUpdate(handDetected, lastGestureText) {
     chrome.runtime.sendMessage({
@@ -264,6 +306,7 @@ function sendStatusUpdate(handDetected, lastGestureText) {
         handDetected: handDetected,
         isPaused: isPaused,
         currentMode: currentMode,
+        isTabSwitchSubState: isTabSwitchSubState, 
         lastGesture: lastGestureText,
         detectionRate: currentDetectionRate
     });
@@ -287,12 +330,15 @@ function detectHands(){
         thumbsUpHoldCount = 0;
         reloadHoldCount = 0;
         paletteFistHoldCount = 0; 
+        rockPoseHoldCount = 0;
+        rockPoseToggleFired = false;
         paletteFistToggleFired = false;
         wasZoomInStart = false; 
         wasZoomOutStart = false;
         pauseToggleFired = false;
         screenShotToggleFired =false;
         latestHand = null;
+        lastTabDirection = null;
         sendStatusUpdate(false, null);
         setTimeout(detectHands, 100);
         return;
@@ -457,9 +503,67 @@ function detectHands(){
                 wasZoomOutStart = startZoomOut || (wasZoomOutStart && !finishZoomOut);
 
             }
+
             //NAV MODE
             else if (currentMode === "nav") {
-                // rock pose / tab-switching goes here later
+                const currentRockPose = isRockPoseThumbOut(fingers);
+                if (currentRockPose) {
+                    rockPoseHoldCount++;
+                    if (rockPoseHoldCount >= ROCK_POSE_HOLD_FRAMES && !rockPoseToggleFired) {
+                        isTabSwitchSubState = !isTabSwitchSubState;
+                        rockPoseToggleFired = true;
+                        console.log("Tab-switch sub-state:", isTabSwitchSubState);
+                    }
+                } 
+                else {
+                    rockPoseHoldCount = 0;
+                    rockPoseToggleFired = false;
+                }
+
+                if (isTabSwitchSubState) {
+                    const isLShape = isRockPose(fingers);
+                    if (isLShape) {
+                        const angle = getIndexTiltAngle(hand);
+
+                        if (angle > TAB_TILT_THRESHOLD && (hasReturnedToCenter || lastTabDirection !== "next")) {
+                            chrome.runtime.sendMessage({action: "nextTab"});
+                            sendStatusUpdate(true, "Next Tab");
+                            hasReturnedToCenter = false;
+                            lastTabDirection = "next";
+                        } 
+                        else if (angle < -TAB_TILT_THRESHOLD && (hasReturnedToCenter || lastTabDirection !== "prev")) {
+                            chrome.runtime.sendMessage({action: "prevTab"});
+                            sendStatusUpdate(true, "Previous Tab");
+                            hasReturnedToCenter = false;
+                            lastTabDirection = "prev";
+                        } 
+                        else if (Math.abs(angle) < TAB_TILT_THRESHOLD / 2) {
+                            hasReturnedToCenter = true;
+                        }
+                    }
+                }
+
+                //Backward: index-only, swipe from user's left to user's right
+                const currentFingerGun = isFingerGunPose(fingers);
+                if (currentFingerGun) {
+                    console.log("finger gun")
+                    const direction = classifyGunDirection(hand);
+                    console.log(`${direction}`)
+                    if (direction === "left" && wasGunCenterLastFrame) {
+                        console.log("FIRING go");
+                        chrome.runtime.sendMessage({action: "goBack"});
+                        sendStatusUpdate(true, "Back");
+                    } else if (direction === "right" && wasGunCenterLastFrame) {
+                        console.log("FIRING goForward");
+                        chrome.runtime.sendMessage({action: "goForward"});
+                        sendStatusUpdate(true, "Forward");
+                    }
+
+                    wasGunCenterLastFrame = (direction === "center");
+                } else {
+                    wasGunCenterLastFrame = false;
+                }
+                
             }
         }   
     }
