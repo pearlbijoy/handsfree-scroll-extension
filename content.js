@@ -79,10 +79,6 @@ function updatePanelStatus(message) {
         modeColorClass = "";
         modeText = "Action Mode";
     } 
-    else if (message.isTabSwitchSubState) {
-        modeColorClass = "pink";
-        modeText = "Tab Switching";
-    }
 
     else if (message.currentMode === "nav") {
         modeColorClass = "blue";
@@ -170,10 +166,15 @@ function highlightPaletteMode(mode) {
 }
 
 //Allows the panels to be draggable, prevents it from being dragged off the screen
-function makeDraggable(el, handle,onClick) {
-    let offsetX = 0, offsetY = 0, isDragging = false;
+function makeDraggable(el, handle, onClick) {
+    let offsetX = 0, offsetY = 0, isDragging = false, startX = 0, startY = 0;
+    el._wasDragged = false;
+
     handle.addEventListener("mousedown", (e) => {
         isDragging = true;
+        el._wasDragged = false;
+        startX = e.clientX;
+        startY = e.clientY;
         const rect = el.getBoundingClientRect();
         offsetX = e.clientX - rect.left;
         offsetY = e.clientY - rect.top;
@@ -182,6 +183,9 @@ function makeDraggable(el, handle,onClick) {
 
     document.addEventListener("mousemove", (e) => {
         if (!isDragging) return;
+        if (Math.abs(e.clientX - startX) > 4 || Math.abs(e.clientY - startY) > 4) {
+            el._wasDragged = true;
+        }
         let newLeft = e.clientX - offsetX;
         let newTop = e.clientY - offsetY;
 
@@ -195,7 +199,7 @@ function makeDraggable(el, handle,onClick) {
     });
 
     document.addEventListener("mouseup", () => {
-        if (isDragging && onClick) {
+        if (isDragging && !el._wasDragged && onClick) {
             onClick();
         }
         isDragging = false;
@@ -297,10 +301,12 @@ function syncPosition(fromEl, toEl) {
     const centerX = fromRect.left + fromRect.width / 2;
     const centerY = fromRect.top + fromRect.height / 2;
 
-    let newLeft = centerX - toEl.offsetWidth / 2;
-    let newTop = centerY - toEl.offsetHeight / 2;
+    const nearLeft = centerX < window.innerWidth / 2;
+    const nearTop = centerY < window.innerHeight / 2;
 
-    //shouldn't end up partially or fully off-screen
+    let newLeft = nearLeft ? fromRect.left : fromRect.right - toEl.offsetWidth;
+    let newTop = nearTop ? fromRect.top : fromRect.bottom - toEl.offsetHeight;
+
     const maxLeft = window.innerWidth - toEl.offsetWidth - 8;
     const maxTop = window.innerHeight - toEl.offsetHeight - 8;
     newLeft = Math.min(Math.max(newLeft, 8), maxLeft);
@@ -322,6 +328,7 @@ function initPanel() {
 
     //Collapsing and expanding panel related:
    collapsed.addEventListener("click", () => {
+        if (collapsed._wasDragged) return; 
         panel.style.visibility = "hidden";
         panel.style.display = "block";
         syncPosition(collapsed, panel);

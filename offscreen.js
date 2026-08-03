@@ -20,20 +20,20 @@ let PALETTE_FIST_HOLD_FRAMES = 4;
 let paletteFistToggleFired = false;
 let TILT_ANGLE_THRESHOLD = 12; // degrees, tune by testing
 
-//Nav Mode: tab switching sub-state
-let isTabSwitchSubState = false;
-let lastTabDirection = null; // "next" | "prev" | null
+//for the detection rate
+let lastFrameTime = performance.now();
+let currentDetectionRate = 300;
+
+//Nav Mode: tab switching 
+let lastTabDirection = null; 
 let rockPoseHoldCount = 0;
 let ROCK_POSE_HOLD_FRAMES = 5;
 let rockPoseToggleFired = false;
 let hasReturnedToCenter = true;
-let TAB_TILT_THRESHOLD = 7; // degrees, tune by testing
+const TILT_ANGLE_THRESHOLD_LEFT = 7;   
+const TILT_ANGLE_THRESHOLD_RIGHT = 5;
 
-//Back/forward via hand swipe
-let wasGunCenterLastFrame = false;
-
-
-//for scrolling up and down
+//Scroll Mode:
 let wasIndexOnlyLastFrame = false;
 let wasIndexMiddleLastFrame = false;
 let FLICK_SCROLL_AMOUNT = 400; 
@@ -44,6 +44,7 @@ let thumbsUpHoldCount = 0;
 let thumbsUpToggleFired = false;
 let THUMBS_UP_HOLD_FRAMES = 8;
 
+//Action mode:
 //to pause/play yt video
 let pauseHoldCount = 0;
 let PAUSE_HOLD_FRAMES = 6; // ~1.5s
@@ -63,10 +64,6 @@ let reloadToggleFired = false;
 let PINCH_THRESHOLD = 0.06;
 let wasZoomInStart = false;
 let wasZoomOutStart = false;
-
-//for the detection rate
-let lastFrameTime = performance.now();
-let currentDetectionRate = 300;
 
 //for the live feed view
 let isFeedVisible = false;
@@ -287,17 +284,6 @@ function getIndexTiltAngle(hand) {
     return -(radians * (180 / Math.PI)); // flipped to match user's own left/right, same as getPalmTiltAngle
 }
 
-function isFingerGunPose(fingers) {
-    return fingers.thumb && fingers.index && fingers.middle && !fingers.ring && !fingers.pinky;
-}
-
-function classifyGunDirection(hand) {
-    const angle = getIndexTiltAngle(hand); // reuse existing function
-    if (angle > 10) return "right";
-    if (angle < -10) return "left";
-    return "center";
-}
-
 //Updating the panel
 function sendStatusUpdate(handDetected, lastGestureText) {
     chrome.runtime.sendMessage({
@@ -305,7 +291,6 @@ function sendStatusUpdate(handDetected, lastGestureText) {
         handDetected: handDetected,
         isPaused: isPaused,
         currentMode: currentMode,
-        isTabSwitchSubState: isTabSwitchSubState, 
         lastGesture: lastGestureText,
         detectionRate: currentDetectionRate
     });
@@ -402,8 +387,8 @@ function detectHands(){
 
                 const tiltAngle = getPalmTiltAngle(hand);
                 let candidateMode;
-                if (tiltAngle > TILT_ANGLE_THRESHOLD) candidateMode = getNeighborMode(currentMode, "right");
-                else if (tiltAngle < -TILT_ANGLE_THRESHOLD) candidateMode = getNeighborMode(currentMode, "left");
+                if (tiltAngle > TILT_ANGLE_THRESHOLD_RIGHT) candidateMode = getNeighborMode(currentMode, "right");
+                else if (tiltAngle < -TILT_ANGLE_THRESHOLD_LEFT) candidateMode = getNeighborMode(currentMode, "left");
                 else candidateMode = currentMode;
 
                 if (candidateMode !== selectedModeInPalette) {
@@ -505,64 +490,29 @@ function detectHands(){
 
             //NAV MODE
             else if (currentMode === "nav") {
-                const currentRockPose = isRockPoseThumbOut(fingers);
-                if (currentRockPose) {
-                    rockPoseHoldCount++;
-                    if (rockPoseHoldCount >= ROCK_POSE_HOLD_FRAMES && !rockPoseToggleFired) {
-                        isTabSwitchSubState = !isTabSwitchSubState;
-                        rockPoseToggleFired = true;
-                        console.log("Tab-switch sub-state:", isTabSwitchSubState);
+                const isLShape = isRockPose(fingers);
+                if (isLShape) {
+                    const angle = getIndexTiltAngle(hand);
+
+                    if (angle > TILT_ANGLE_THRESHOLD_RIGHT && (hasReturnedToCenter || lastTabDirection !== "next")) {
+                        chrome.runtime.sendMessage({action: "nextTab"});
+                        sendStatusUpdate(true, "Next Tab");
+                        hasReturnedToCenter = false;
+                        lastTabDirection = "next";
+                    }
+                    else if (angle < -TILT_ANGLE_THRESHOLD_LEFT && (hasReturnedToCenter || lastTabDirection !== "prev")) {
+                        chrome.runtime.sendMessage({action: "prevTab"});
+                        sendStatusUpdate(true, "Previous Tab");
+                        hasReturnedToCenter = false;
+                        lastTabDirection = "prev";
+                    }
+                    else if (Math.abs(angle) < Math.min(TILT_ANGLE_THRESHOLD_LEFT, TILT_ANGLE_THRESHOLD_RIGHT) / 2) {
+                        hasReturnedToCenter = true;
                     }
                 } 
                 else {
-                    rockPoseHoldCount = 0;
-                    rockPoseToggleFired = false;
+                    hasReturnedToCenter = true; // hand left rock pose — reset so re-entering doesn't inherit a stale direction lock
                 }
-
-                if (isTabSwitchSubState) {
-                    const isLShape = isRockPose(fingers);
-                    if (isLShape) {
-                        const angle = getIndexTiltAngle(hand);
-
-                        if (angle > TAB_TILT_THRESHOLD && (hasReturnedToCenter || lastTabDirection !== "next")) {
-                            chrome.runtime.sendMessage({action: "nextTab"});
-                            sendStatusUpdate(true, "Next Tab");
-                            hasReturnedToCenter = false;
-                            lastTabDirection = "next";
-                        } 
-                        else if (angle < -TAB_TILT_THRESHOLD && (hasReturnedToCenter || lastTabDirection !== "prev")) {
-                            chrome.runtime.sendMessage({action: "prevTab"});
-                            sendStatusUpdate(true, "Previous Tab");
-                            hasReturnedToCenter = false;
-                            lastTabDirection = "prev";
-                        } 
-                        else if (Math.abs(angle) < TAB_TILT_THRESHOLD / 2) {
-                            hasReturnedToCenter = true;
-                        }
-                    }
-                }
-
-                //Backward: index-only, swipe from user's left to user's right
-                const currentFingerGun = isFingerGunPose(fingers);
-                if (currentFingerGun) {
-                    console.log("finger gun")
-                    const direction = classifyGunDirection(hand);
-                    console.log(`${direction}`)
-                    if (direction === "left" && wasGunCenterLastFrame) {
-                        console.log("FIRING go");
-                        chrome.runtime.sendMessage({action: "goBack"});
-                        sendStatusUpdate(true, "Back");
-                    } else if (direction === "right" && wasGunCenterLastFrame) {
-                        console.log("FIRING goForward");
-                        chrome.runtime.sendMessage({action: "goForward"});
-                        sendStatusUpdate(true, "Forward");
-                    }
-
-                    wasGunCenterLastFrame = (direction === "center");
-                } else {
-                    wasGunCenterLastFrame = false;
-                }
-                
             }
         }   
     }

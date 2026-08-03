@@ -20,10 +20,12 @@ async function checkPermission(){
     if (permissionStatus.state === "granted") {
         await chrome.storage.local.set({ cameraPermission: "received" });
         await createOffscreen();
+        return true;
     } 
     else {
         await chrome.storage.local.set({ cameraPermission: "not received" });
         chrome.tabs.create({url:"permission.html"});
+        return false;
     }
 }
 
@@ -37,13 +39,16 @@ async function toggleCamera(){
     if(state){
         await chrome.offscreen.closeDocument();
         await chrome.storage.local.set({cameraActive: false});
+        updateButtonText();
+        broadcastToAllTabs({action: "cameraStopped"});
     }
     else{
-        await checkPermission(); 
+        const granted = await checkPermission();
+        if (!granted) return; // stop here — don't set cameraActive or broadcast anything
         await chrome.storage.local.set({cameraActive: true});
+        updateButtonText();
+        broadcastToAllTabs({action: "cameraStarted"});
     }
-    updateButtonText();
-    broadcastToAllTabs({action: state ? "cameraStopped" : "cameraStarted"});
 }
 
 function broadcastToAllTabs(message) {
