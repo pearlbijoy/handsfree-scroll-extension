@@ -24,6 +24,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return;
     }
 
+    if (message.action === "openGuide") {
+        chrome.tabs.create({ url: message.url });
+        }   
+
     if (message.action === "zoomIn" || message.action === "zoomOut") {
         chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
             if (!tabs[0]) return;

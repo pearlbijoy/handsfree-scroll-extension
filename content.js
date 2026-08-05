@@ -368,8 +368,11 @@ function initPanel() {
 
     //Guide panel related:
     document.getElementById("guide-btn").addEventListener("click", () => {
-        document.getElementById("guide-overlay").style.display = "flex";
-    });
+        chrome.runtime.sendMessage({
+            action: "openGuide",
+            url: chrome.runtime.getURL("guide.html")
+        });
+    });   
     document.getElementById("guide-close-btn").addEventListener("click", () => {
         document.getElementById("guide-overlay").style.display = "none";
     });

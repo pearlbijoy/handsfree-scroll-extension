@@ -238,11 +238,11 @@ function isReloadPose(fingers){
 
 //SCROLL MODE
 function isIndexOnlyPose(fingers) {
-    return fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky;
+    return !fingers.thumb && fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky;
 }
 
 function isIndexMiddlePose(fingers) {
-    return fingers.index && fingers.middle && !fingers.ring && !fingers.pinky;
+    return !fingers.thumb && fingers.index && fingers.middle && !fingers.ring && !fingers.pinky;
 }
 
 function isStartZoomInPose(fingers, hand) {
