@@ -406,6 +406,7 @@ function detectHands(){
 
                 // scroll down
                 if (currentIndexOnly && !wasIndexOnlyLastFrame) {
+                    console.log("scroll down fired");
                     chrome.runtime.sendMessage({scrollAmount: FLICK_SCROLL_AMOUNT}); 
                     sendStatusUpdate(true, "Scrolled Down");
                 }

@@ -58,9 +58,7 @@ function updatePanelStatus(message) {
     const handSub = document.getElementById("hand-sub");
     const modeValue = document.getElementById("mode-value");
     const dotCollapsed = document.getElementById("dot-collapsed");
-    const guideModeText = document.getElementById("guide-mode-text");
-    const guideModeDot = document.getElementById("guide-mode-dot");
-
+    
     if (!dotHand) return; // panel not injected yet
 
     // Hand detected dot
@@ -93,12 +91,6 @@ function updatePanelStatus(message) {
     modeValue.textContent = modeText;
     dotCollapsed.className = "status-dot-mini" + (modeColorClass ? " " + modeColorClass : "");
     
-    //to update the guide panel on what mode the user is currently in
-    if (guideModeText) {
-        guideModeText.textContent = modeText;
-        guideModeDot.className = "status-dot" + (modeColorClass ? " " + modeColorClass : "");
-    }
-
     const dotScroll = document.getElementById("dot-scroll");
     const scrollSub = document.getElementById("scroll-sub");
     dotScroll.className = "status-dot" + (message.isScrollPaused ? "" : "orange");
@@ -373,14 +365,6 @@ function initPanel() {
             url: chrome.runtime.getURL("guide.html")
         });
     });   
-    document.getElementById("guide-close-btn").addEventListener("click", () => {
-        document.getElementById("guide-overlay").style.display = "none";
-    });
-    document.getElementById("guide-overlay").addEventListener("click", (e) => {
-        if (e.target.id === "guide-overlay") {
-            document.getElementById("guide-overlay").style.display = "none";
-        }
-    });
     
     //Mode dropdown:
     //Manual mode override dropdown, lets the user force Scroll/Action mode
@@ -473,12 +457,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "hidePanelForCapture") {
         const panel = document.getElementById("gesture-panel");
         const collapsed = document.getElementById("gesture-collapsed");
-        const guide = document.getElementById("guide-overlay");
         const feed = document.getElementById("hand-feed-panel");
 
         if (panel) panel.style.visibility = "hidden";
         if (collapsed) collapsed.style.visibility = "hidden";
-        if (guide) guide.style.visibility = "hidden";
         if (feed) feed.style.visibility = "hidden";   
 
         sendResponse({done: true});
@@ -488,12 +470,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "showPanelAfterCapture") {
         const panel = document.getElementById("gesture-panel");
         const collapsed = document.getElementById("gesture-collapsed");
-        const guide = document.getElementById("guide-overlay");
         const feed = document.getElementById("hand-feed-panel"); 
 
         if (panel) panel.style.visibility = "visible";
         if (collapsed) collapsed.style.visibility = "visible";
-        if (guide) guide.style.visibility = "visible";
         if (feed) feed.style.visibility = "visible";  
     }
 

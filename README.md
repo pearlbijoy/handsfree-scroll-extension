@@ -6,9 +6,8 @@ A Manifest V3 Chrome extension that lets you scroll, take screenshots, and contr
 
 ## Why this exists
 
-Most "gesture control" browser extensions are static-pose demos: hold up a peace sign, something happens. This one is a stateful, mode-based system : two operating modes, six distinct gestures, a debouncing layer that filters out the noise real webcam hand-tracking produces frame to frame, and a live feed panel that visualizes the actual tracking data driving it.
+Most "gesture control" browser extensions are static-pose demos: hold up a peace sign, something happens. This one is a stateful system with three operating modes (Scroll, Action, Nav), a visual mode-selection palette you navigate entirely by hand tilt, a debouncing layer that filters out the noise real webcam hand-tracking produces frame to frame, and a live feed panel that visualizes the actual tracking data driving it.
 
-The most interesting engineering problem here wasn't detecting gestures — it was making scroll *feel* right.
 
 ## The scroll redesign: continuous vs. discrete
 
@@ -22,30 +21,19 @@ The fix was to stop tracking *motion* and start tracking *state transitions*. In
 
 This is the same core pattern (hold-frame counting + a fired/reset lock, so a pose has to be *held*, not just glimpsed, before it triggers) used for every other gesture in the extension: thumbs-up pause, palm-hold mode switch, fist-hold video toggle, and the screenshot gesture.
 
-## Gesture reference
+## Modes
 
-**Global** (works in either mode):
+HoverNav has three modes, switched via a visual mode palette (hold an open palm, tilt to preview a neighboring mode, hold a fist to confirm):
 
-| Gesture | Hold | Action |
-|---|---|---|
-| 👍 Thumbs up | ~1.5s | Pause / resume all detection |
-| ✋ Open palm | ~2s | Switch between Scroll Mode and Action Mode |
+- **Scroll Mode** — scroll the page up/down with finger gestures
+- **Action Mode** — screenshot, play/pause video, reload, zoom in/out
+- **Nav Mode** — switch between browser tabs
 
-**Scroll Mode:**
+A couple of gestures (pause/resume detection, opening the mode palette) work globally regardless of mode.
 
-| Gesture | Trigger | Action |
-|---|---|---|
-| ☝️ Index only | curl → extend | Scroll down |
-| ✌️ Index + middle | extend → curl | Scroll up |
+For the full gesture-by-gesture breakdown, open `guide.html` from the extension panel — it's the source of truth and stays in sync with the current gesture set as it evolves.
 
-**Action Mode:**
-
-| Gesture | Hold | Action |
-|---|---|---|
-| ✌️ Index + middle | ~1.5s | Take a screenshot |
-| ✊ Fist | ~1.5s | Play / pause video |
-
-Sensitivity (scroll distance) and hold duration are both adjustable live from the on-page status panel.
+Scroll sensitivity is adjustable live from the on-page status panel.
 
 ## Live feed panel
 
@@ -61,14 +49,14 @@ The status panel shows a live, measured detection rate (`performance.now()` delt
 manifest.json       — MV3 config, permissions, CSP for MediaPipe WASM
 popup.html/js         — camera on/off toggle
 offscreen.html/js     — camera stream + MediaPipe detection loop + all gesture logic + live feed rendering
-background.js        — message relay between offscreen, content scripts, and tabs
-content.js           — injects the status panel, executes page-facing actions (scroll, video toggle)
-panel.html/css       — floating status panel, live feed panel, and gesture guide overlay
+background.js        — message relay between offscreen, content scripts, and tabs; opens guide.html as a tab
+content.js           — injects the status panel, executes page-facing actions (scroll, video, tabs, zoom)
+panel.html/css       — floating status panel, live feed panel, and mode-selection palette
+guide.html           — standalone gesture reference page, opened in a new tab
 ```
 
 ## Limitations
 
-- **Doesn't work on infinite-scroll feeds with internal scroll containers** (Instagram Reels, YouTube Shorts). These sites scroll an inner `<div>`, not the document itself, so `window.scrollBy` has no effect. Documented here rather than special-cased per-site, since it'd require site-specific selectors that break the moment the site's DOM changes. *(On the future features list, see below.)*
 - **Video toggle targets `document.querySelector("video")`**, so it works reliably on plain HTML5 video and YouTube, but may not pick the right element on pages with multiple videos or custom players.
 
 ## Setup
@@ -88,12 +76,10 @@ No build step or package manager required — this runs as plain JS/HTML/CSS loa
 
 ## Future features
 
-- Reels/Shorts scroll support (target the inner scroll container instead of the document)
 - Multi-video toggle handling (disambiguate when a page has more than one `<video>`)
-- Pinch-to-zoom
-- Back/forward navigation via directional flick
 - Gesture-controlled cursor (absolute position mapping)
 - Gesture-triggered quicklinks (Gmail, Gemini, etc.)
+- Voice command mode (explored, deferred — larger scope than a typical gesture feature)
 
 ## License
 

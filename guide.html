@@ -23,26 +23,26 @@
     background: var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    padding: 40px 24px 80px;
+    padding: 60px 40px 100px;
   }
 
   .page {
-    max-width: 760px;
+    max-width: 100%;
     margin: 0 auto;
   }
 
   .page-header {
-    margin-bottom: 40px;
+    margin-bottom: 60px;
   }
 
   .page-title {
-    font-size: 28px;
+    font-size: 40px;
     font-weight: 700;
-    margin: 0 0 6px;
+    margin: 0 0 12px;
   }
 
   .page-subtitle {
-    font-size: 14px;
+    font-size: 18px;
     color: var(--text-dim);
     margin: 0;
   }
@@ -50,30 +50,30 @@
   .tip-box {
     background: rgba(74,144,226,0.1);
     border: 1px solid rgba(74,144,226,0.25);
-    border-radius: 10px;
-    padding: 14px 18px;
-    font-size: 13px;
-    margin-bottom: 36px;
-    line-height: 1.6;
+    border-radius: 12px;
+    padding: 20px 24px;
+    font-size: 16px;
+    margin-bottom: 48px;
+    line-height: 1.7;
   }
   .tip-box strong { color: #60a5fa; }
 
   .section {
-    margin-bottom: 36px;
+    margin-bottom: 56px;
   }
 
   .section-label {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     font-weight: 700;
-    font-size: 15px;
-    margin-bottom: 14px;
+    font-size: 20px;
+    margin-bottom: 20px;
   }
 
   .section-dot {
-    width: 10px;
-    height: 10px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     flex-shrink: 0;
   }
@@ -83,49 +83,49 @@
   .section-dot.nav    { background: var(--purple); }
 
   .section-desc {
-    font-size: 12px;
+    font-size: 15px;
     color: var(--text-faint);
-    margin: -8px 0 14px;
+    margin: -4px 0 18px;
   }
 
   .gesture-card {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 28px;
     background: var(--card-bg);
     border: 1px solid var(--card-border);
-    border-radius: 12px;
-    padding: 14px 16px;
-    margin-bottom: 10px;
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 16px;
   }
   .gesture-card.scroll { border-color: rgba(34,197,94,0.25); }
   .gesture-card.action { border-color: rgba(74,144,226,0.25); }
   .gesture-card.nav    { border-color: rgba(167,139,250,0.25); }
 
   .gesture-icon {
-    width: 44px;
-    height: 44px;
+    width: 80px;
+    height: 80px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     background: rgba(255,255,255,0.06);
-    border-radius: 10px;
-    font-size: 22px;
+    border-radius: 14px;
+    font-size: 40px;
   }
 
   .gesture-icon img {
-    width: 32px;
-    height: 32px;
+    width: 64px;
+    height: 64px;
     object-fit: contain;
   }
 
   .gesture-text { flex: 1; }
-  .gesture-title { font-weight: 600; font-size: 13.5px; margin-bottom: 2px; }
-  .gesture-sub { font-size: 12px; color: var(--text-dim); }
+  .gesture-title { font-weight: 600; font-size: 20px; margin-bottom: 6px; }
+  .gesture-sub { font-size: 16px; color: var(--text-dim); }
 
   .gesture-action {
-    font-size: 12.5px;
+    font-size: 18px;
     font-weight: 600;
     text-align: right;
     color: var(--text);
@@ -141,12 +141,12 @@
     </div>
 
     <div class="tip-box">
-      <strong>Tip:</strong> most gestures need to be held steady for a beat before they fire — this stops accidental triggers while your hand is just moving between poses.
+      <strong>Tip:</strong> Most gestures need to be held steady for a beat before they fire-this stops accidental triggers while your hand is just moving between poses.
     </div>
 
     <!-- GLOBAL -->
     <div class="section">
-      <div class="section-label"><span class="section-dot global"></span>Global — works in any mode</div>
+      <div class="section-label"><span class="section-dot global"></span>Global : works in any mode</div>
       <div class="section-desc">These aren't tied to a specific mode; they work no matter what you're currently doing.</div>
 
       <div class="gesture-card">
@@ -162,7 +162,7 @@
         <div class="gesture-icon"><img src="/guideicons/activatepalettemode.png" alt="Open palm"></div>
         <div class="gesture-text">
           <div class="gesture-title">Open palm</div>
-          <div class="gesture-sub">Held steady, detection not paused</div>
+          <div class="gesture-sub">Held steady,used to switch between modes</div>
         </div>
         <div class="gesture-action">Open mode palette</div>
       </div>
@@ -199,7 +199,7 @@
         <div class="gesture-icon"><img src="/guideicons/scrolldown.png" alt="Index finger only"></div>
         <div class="gesture-text">
           <div class="gesture-title">Index finger only</div>
-          <div class="gesture-sub">Extended, others curled</div>
+          <div class="gesture-sub">Index finger goes from curled to extended</div>
         </div>
         <div class="gesture-action">Scroll down</div>
       </div>
@@ -208,7 +208,7 @@
         <div class="gesture-icon"><img src="/guideicons/scrollup.png" alt="Index + middle, then release"></div>
         <div class="gesture-text">
           <div class="gesture-title">Index + middle, then release</div>
-          <div class="gesture-sub">Both extended, then relaxed</div>
+          <div class="gesture-sub">Both fingers go from extended to curled</div>
         </div>
         <div class="gesture-action">Scroll up</div>
       </div>
@@ -239,7 +239,7 @@
       <div class="gesture-card action">
         <div class="gesture-icon"><img src="/guideicons/reloadpage.png" alt="Four fingers, no thumb"></div>
         <div class="gesture-text">
-          <div class="gesture-title">Four fingers, no thumb</div>
+          <div class="gesture-title">Four fingers</div>
           <div class="gesture-sub">Held steady</div>
         </div>
         <div class="gesture-action">Reload page</div>
@@ -248,8 +248,8 @@
       <div class="gesture-card action">
         <div class="gesture-icon"><img src="/guideicons/zoomin.png" alt="Pinch, then spread"></div>
         <div class="gesture-text">
-          <div class="gesture-title">Pinch, then spread</div>
-          <div class="gesture-sub">Start pinched, finish spread apart</div>
+          <div class="gesture-title">Index and Thumb</div>
+          <div class="gesture-sub">Pinch the fingers and then spread apart in a zoom in motion</div>
         </div>
         <div class="gesture-action">Zoom in</div>
       </div>
@@ -257,8 +257,8 @@
       <div class="gesture-card action">
         <div class="gesture-icon"><img src="/guideicons/zoomout.png" alt="Spread, then pinch"></div>
         <div class="gesture-text">
-          <div class="gesture-title">Spread, then pinch</div>
-          <div class="gesture-sub">Start spread apart, finish pinched</div>
+          <div class="gesture-title">Thumb + index and middle finger</div>
+          <div class="gesture-sub">Start spread apart and pinch the fingers in a zoom out motion</div>
         </div>
         <div class="gesture-action">Zoom out</div>
       </div>
